@@ -16,7 +16,7 @@ const UserHeader = ({ user }) => {
   const { handleFollowUnfollow, following, updating } = useFollowUnfollow(user);
 
   const handleInstagramClick = () => {
-    window.open('https://www.instagram.com/bibekarc/', '_blank');
+    window.open("https://www.instagram.com/bibekarc/", "_blank");
   };
 
   const copyURL = () => {
@@ -31,6 +31,8 @@ const UserHeader = ({ user }) => {
       });
     });
   };
+
+  
 
   return (
     <VStack gap={4} alignItems={"start"}>
@@ -83,11 +85,27 @@ const UserHeader = ({ user }) => {
           <Button size={"sm"}>Update Profile</Button>
         </Link>
       )}
-      {currentUser?._id !== user._id && (
-        <Button size={"sm"} onClick={handleFollowUnfollow} isLoading={updating}>
-          {following ? "Unfollow" : "Follow"}
-        </Button>
-      )}
+      <Flex gap={5}>
+        {currentUser?._id !== user._id && (
+          <>
+            <Button
+              size={"sm"}
+              onClick={handleFollowUnfollow}
+              isLoading={updating}
+            >
+              {following ? "Unfollow" : "Follow"}
+            </Button>
+            <Button
+              size={"sm"}
+              onClick={handleFollowUnfollow}
+              isLoading={updating}
+            >
+              Message
+            </Button>
+          </>
+        )}
+      </Flex>
+
       <Flex w={"full"} justifyContent={"space-between"}>
         <Flex gap={2} alignItems={"center"}>
           <Text color={"gray.light"}>{user.followers.length} followers</Text>

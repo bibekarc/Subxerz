@@ -11,6 +11,7 @@ import UpdateProfilePage from "./pages/UpdateProfilePage";
 import CreatePost from "./components/CreatePost";
 import ChatPage from "./pages/ChatPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import Explore from "./pages/Explore";
 
 function App() {
 	const user = useRecoilValue(userAtom);
@@ -39,6 +40,7 @@ function App() {
         <Route path="/:username/post/:pid" element={<PostPage />} />
         <Route path='/chat' element={user ? <ChatPage /> : <Navigate to={"/auth"} />} />
         <Route path='/settings' element={user ? <SettingsPage /> : <Navigate to={"/auth"} />} />
+        <Route path='/explore' element={user ? <Explore /> : <Navigate to={"/auth"} />} />
       </Routes>
       {user && <CreatePost />}
     </Container>
