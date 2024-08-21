@@ -43,7 +43,7 @@ const HomePage = () => {
             <SuggestedUsers />
           </>
         )}
-
+        <SuggestedUsers />
         {loading && (
           <Flex justify="center">
             <Spinner size="xl" />
