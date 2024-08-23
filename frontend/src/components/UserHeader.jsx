@@ -7,13 +7,14 @@ import { BsInstagram } from "react-icons/bs";
 import { CgMoreO } from "react-icons/cg";
 import { useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import useFollowUnfollow from "../hooks/useFollowUnfollow";
 
 const UserHeader = ({ user }) => {
   const toast = useToast();
   const currentUser = useRecoilValue(userAtom); // logged in user
   const { handleFollowUnfollow, following, updating } = useFollowUnfollow(user);
+  const navigate = useNavigate();
 
   const handleInstagramClick = () => {
     window.open("https://www.instagram.com/bibekarc/", "_blank");
@@ -32,6 +33,10 @@ const UserHeader = ({ user }) => {
     });
   };
 
+  const handleMessage = () => {
+    // Redirect to the chat page with the user
+    navigate(`/chat`);
+  };
   
 
   return (
@@ -97,7 +102,7 @@ const UserHeader = ({ user }) => {
             </Button>
             <Button
               size={"sm"}
-              onClick={handleFollowUnfollow}
+              onClick={handleMessage}
               isLoading={updating}
             >
               Message

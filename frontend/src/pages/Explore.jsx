@@ -1,4 +1,4 @@
-import { Box, Flex, Spinner, Text } from "@chakra-ui/react";
+import { Box, Flex, Spinner } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import useShowToast from "../hooks/useShowToast";
 import SuggestedUsers from "../components/SuggestedUsers";
@@ -30,13 +30,8 @@ const HomePage = () => {
     <Flex gap="10" alignItems={"flex-start"}>
       <Box flex={70}>
           <>
-            <Text mb={4} fontWeight={"bold"}>
-              Follow some users to see the feed
-            </Text>
             <SuggestedUsers />
           </>
-
-        <SuggestedUsers />
         {loading && (
           <Flex justify="center">
             <Spinner size="xl" />
@@ -51,7 +46,6 @@ const HomePage = () => {
           md: "block",
         }}
       >
-        <SuggestedUsers />
       </Box>
     </Flex>
   );

@@ -1,42 +1,62 @@
-import { Button, Text } from "@chakra-ui/react";
+import { Box, Flex, Image, Text, useColorMode } from "@chakra-ui/react";
 import useShowToast from "../hooks/useShowToast";
 import useLogout from "../hooks/useLogout";
+import CustomButton from "../components/CustomButton";
 
 export const SettingsPage = () => {
-	const showToast = useShowToast();
-	const logout = useLogout();
+  const { colorMode, toggleColorMode } = useColorMode();
+  const showToast = useShowToast();
+  const logout = useLogout();
 
-	const freezeAccount = async () => {
-		if (!window.confirm("Are you sure you want to freeze your account?")) return;
+  const freezeAccount = async () => {
+    if (!window.confirm("Are you sure you want to freeze your account?"))
+      return;
 
-		try {
-			const res = await fetch("/api/users/freeze", {
-				method: "PUT",
-				headers: { "Content-Type": "application/json" },
-			});
-			const data = await res.json();
+    try {
+      const res = await fetch("/api/users/freeze", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
 
-			if (data.error) {
-				return showToast("Error", data.error, "error");
-			}
-			if (data.success) {
-				await logout();
-				showToast("Success", "Your account has been frozen", "success");
-			}
-		} catch (error) {
-			showToast("Error", error.message, "error");
-		}
-	};
+      if (data.error) {
+        return showToast("Error", data.error, "error");
+      }
+      if (data.success) {
+        await logout();
+        showToast("Success", "Your account has been frozen", "success");
+      }
+    } catch (error) {
+      showToast("Error", error.message, "error");
+    }
+  };
+  const modeText = colorMode === "dark" ? "Light Mode" : "Dark Mode";
 
-	return (
-		<>
-			<Text my={1} fontWeight={"bold"}>
-				Freeze Your Account
-			</Text>
-			<Text my={1}>You can unfreeze your account anytime by logging in.</Text>
-			<Button size={"sm"} colorScheme='red' onClick={freezeAccount}>
-				Freeze
-			</Button>
-		</>
-	);
+  return (
+    <>
+      <Flex justifyContent={"space-between"} mb={8} fontWeight={"bold"}>
+        <Text>{modeText}</Text>
+        <Image
+          cursor={"pointer"}
+          alt="logo"
+          w={7}
+          src={colorMode === "dark" ? "/on.png" : "/off.png"}
+          onClick={toggleColorMode}
+        />
+      </Flex>
+
+      <Text my={1} fontWeight={"bold"}>
+        Freeze Your Account
+      </Text>
+      <Text my={1}>
+        ( You can unfreeze your account anytime by logging in. )
+      </Text>
+      <Box mt={8}>
+      <CustomButton
+        onClick={freezeAccount}
+        title="Freeze"
+      />
+      </Box>
+    </>
+  );
 };
