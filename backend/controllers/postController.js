@@ -22,7 +22,7 @@ const createPost = async (req, res) => {
       return res.status(401).json({ error: "Unauthorized to create post" });
     }
 
-    const maxLength = 2200;
+    const maxLength = 1000;
     if (text.length > maxLength) {
       return res
         .status(400)
