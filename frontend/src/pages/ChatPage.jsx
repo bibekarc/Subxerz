@@ -176,12 +176,12 @@ const ChatPage = () => {
           </form>
 
           {loadingConversations &&
-            [0, 1, 2, 3, 4].map((_, i) => (
+            [0, 1, 2, ].map((_, i) => (
               <Flex
                 key={i}
                 gap={4}
                 alignItems={"center"}
-                p={"1"}
+                p={"5"}
                 borderRadius={"md"}
               >
                 <Box>

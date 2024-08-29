@@ -138,22 +138,38 @@ const replyToPost = async (req, res) => {
   }
 };
 
+const getFollowingPosts = async (req, res) => {
+	try {
+		const userId = req.user._id;
+		const user = await User.findById(userId);
+		if (!user) {
+			return res.status(404).json({ error: "User not found" });
+		}
+
+		const following = user.following;
+
+		const feedPosts = await Post.find({ postedBy: { $in: following } }).sort({ createdAt: -1 });
+
+		res.status(200).json(feedPosts);
+	} catch (err) {
+		res.status(500).json({ error: err.message });
+	}
+};
+
 const getFeedPosts = async (req, res) => {
   try {
+    // Assuming the user's ID is available in req.user.id from authentication middleware
     const userId = req.user._id;
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
 
-    const following = user.following;
-
-    const feedPosts = await Post.find({ postedBy: { $in: following } }).sort({
+    // Fetch all posts from the Post collection, excluding the current user's posts
+    const feedPosts = await Post.find({ createdBy: { $ne: userId } }).sort({
       createdAt: -1,
     });
 
+    // Send the retrieved posts as a response
     res.status(200).json(feedPosts);
   } catch (err) {
+    // Handle any errors that occur
     res.status(500).json({ error: err.message });
   }
 };
@@ -184,4 +200,5 @@ export {
   replyToPost,
   getFeedPosts,
   getUserPosts,
+  getFollowingPosts,
 };

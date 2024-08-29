@@ -24,3 +24,16 @@
 ::-webkit-scrollbar-thumb {
 	background-color: #555;
 }
+
+
+.my-masonry-grid {
+	display: flex;
+	margin-left: -30px; /* Adjust based on the gap between columns */
+	width: auto;
+  }
+  
+  .my-masonry-grid_column {
+	padding-left: 10px; /* Adjust based on the gap between columns */
+	background-clip: padding-box;
+  }
+  

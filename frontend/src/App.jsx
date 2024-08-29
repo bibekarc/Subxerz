@@ -20,7 +20,7 @@ function App() {
 
   return (
     <Box position={"relative"} w='full'>
-    <Container maxW={pathname === "/" ? { base: "620px", md: "900px" } : "620px"}>
+			<Container maxW={pathname === "/" ? { base: "420px", md: "700px" } : "620px"}>
       <Header />
       <Routes>
         <Route path='/' element={user ? <HomePage /> : <Navigate to='/auth' />} />

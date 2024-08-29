@@ -52,10 +52,10 @@ const UserHeader = ({ user }) => {
               fontSize={"xs"}
               bg={"gray.dark"}
               color={"gray.light"}
-              p={1}
+              px={2}
               borderRadius={"full"}
             >
-              threads.net
+              Subxer
             </Text>
           </Flex>
         </Box>
@@ -103,7 +103,6 @@ const UserHeader = ({ user }) => {
             <Button
               size={"sm"}
               onClick={handleMessage}
-              isLoading={updating}
             >
               Message
             </Button>
@@ -139,25 +138,6 @@ const UserHeader = ({ user }) => {
       </Flex>
 
       <Flex w={"full"}>
-        <Flex
-          flex={1}
-          borderBottom={"1.5px solid white"}
-          justifyContent={"center"}
-          pb="3"
-          cursor={"pointer"}
-        >
-          <Text fontWeight={"bold"}> Posts</Text>
-        </Flex>
-        <Flex
-          flex={1}
-          borderBottom={"1px solid gray"}
-          justifyContent={"center"}
-          color={"gray.light"}
-          pb="3"
-          cursor={"pointer"}
-        >
-          <Text fontWeight={"bold"}> Replies</Text>
-        </Flex>
       </Flex>
     </VStack>
   );

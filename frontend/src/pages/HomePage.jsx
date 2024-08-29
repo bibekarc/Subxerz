@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   CloseButton,
+  Divider,
   Flex,
   Image,
   Input,
@@ -10,16 +11,15 @@ import {
   Textarea,
   useDisclosure,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import useShowToast from "../hooks/useShowToast";
 import Post from "../components/Post";
-import { useRecoilState, useRecoilValue } from "recoil";
-import postsAtom from "../atoms/postsAtom";
 import SuggestedUsers from "../components/SuggestedUsers";
 import { BsFillImageFill } from "react-icons/bs";
-import { useRef } from "react";
 import usePreviewImg from "../hooks/usePreviewImg";
 import userAtom from "../atoms/userAtom";
+import { useRecoilState, useRecoilValue } from "recoil";
+import postsAtom from "../atoms/postsAtom";
 import { useParams } from "react-router-dom";
 
 const MAX_CHAR = 2200;
@@ -35,28 +35,31 @@ const HomePage = () => {
   const user = useRecoilValue(userAtom);
   const { username } = useParams();
   const { onClose } = useDisclosure();
+  const [activeSection, setActiveSection] = useState("feed");
 
   useEffect(() => {
-		const getFeedPosts = async () => {
-			setLoading(true);
-			setPosts([]);
-			try {
-				const res = await fetch("/api/posts/feed");
-				const data = await res.json();
-				if (data.error) {
-					showToast("Error", data.error, "error");
-					return;
-				}
-				console.log(data);
-				setPosts(data);
-			} catch (error) {
-				showToast("Error", error.message, "error");
-			} finally {
-				setLoading(false);
-			}
-		};
-    getFeedPosts();
-  }, [showToast, setPosts]);
+    const fetchPosts = async () => {
+      setLoading(true);
+      setPosts([]);
+      const url = activeSection === "feed" ? "/api/posts/feed" : "/api/posts/following";
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.error) {
+          showToast("Error", data.error, "error");
+          return;
+        }
+        setPosts(data);
+      } catch (error) {
+        showToast("Error", error.message, "error");
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchPosts();
+  }, [activeSection, showToast, setPosts]);
+  
 
   const handleTextChange = (e) => {
     const inputText = e.target.value;
@@ -99,109 +102,154 @@ const HomePage = () => {
       setPostText("");
       setImgUrl("");
     } catch (error) {
-      showToast("Error", error, "error");
+      showToast("Error", error.message, "error");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Flex gap="10" alignItems={"flex-start"}>
-      <Box flex={70}>
-        {!loading && posts.length === 0 && (
-          <>
-            <Text mb={4} fontWeight={"bold"}>
-              Follow some users to see the feed
-            </Text>
-            <SuggestedUsers />
-          </>
-        )}
-        {loading && (
-          <Flex justify="center">
-            <Spinner size="xl" />
-          </Flex>
-        )}
+    <Flex direction="column" gap="10" alignItems={"flex-start"}>
+      <Flex w="full" mb={1}>
+        <Button
+          flex={1}
+          variant={activeSection === "feed" ? "solid" : "outline"}
+          onClick={() => setActiveSection("feed")}
+        >
+          Feed
+        </Button>
+        <Button
+          flex={1}
+          variant={activeSection === "following" ? "solid" : "outline"}
+          onClick={() => setActiveSection("following")}
+        >
+          Following
+        </Button>
+      </Flex>
 
-        <Box mb={10}>
-          <Text
-            display={"flex"}
-            justifyContent={"center"}
-            mb={6}
-            fontWeight={"bold"}
-          >
-            Create Post
-          </Text>
-          <Textarea
-            placeholder="Post content goes here.."
-            onChange={handleTextChange}
-            value={postText}
-          />
-          <Text
-            fontSize="xs"
-            fontWeight="bold"
-            textAlign={"right"}
-            m={"1"}
-            color={"gray.200"}
-          >
-            {remainingChar}/{MAX_CHAR}
-          </Text>
+      {activeSection === "feed" && (
+        <Box flex={70}>
+          {!loading && posts.length === 0 && !user ? (
+            <>
+              <Text mb={4} fontWeight={"bold"}>
+                Follow some users to see the feed
+              </Text>
+              <SuggestedUsers />
+            </>
+          ) : (
+            <>
+              {loading ? (
+                <Flex justify="center">
+                  <Spinner size="xl" />
+                </Flex>
+              ) : (
+                <>
+                  <Box mb={10}>
+                    <Text
+                      display={"flex"}
+                      justifyContent={"center"}
+                      mb={6}
+                      fontWeight={"bold"}
+                    >
+                      Create Post
+                    </Text>
+                    <Textarea
+                      placeholder="What's on your mind.."
+                      onChange={handleTextChange}
+                      value={postText}
+                    />
+                    <Text
+                      fontSize="xs"
+                      fontWeight="bold"
+                      textAlign={"right"}
+                      m={"1"}
+                      color={"gray.200"}
+                    >
+                      {remainingChar}/{MAX_CHAR}
+                    </Text>
 
-          <Input
-            type="file"
-            hidden
-            ref={imageRef}
-            onChange={handleImageChange}
-          />
-          <Box
-            display={"flex"}
-            alignItems={"centre"}
-            flexDirection={"row-reverse"}
-            justifyContent={"space-between"}
-          >
-            <BsFillImageFill
-              style={{ marginLeft: "5px", cursor: "pointer" }}
-              size={16}
-              onClick={() => imageRef.current.click()}
-            />
-          </Box>
-          {imgUrl && (
-            <Flex mt={5} w={"full"} position={"relative"}>
-              <Image src={imgUrl} alt="Selected img" />
-              <CloseButton
-                onClick={() => {
-                  setImgUrl("");
-                }}
-                bg={"gray.800"}
-                position={"absolute"}
-                top={2}
-                right={2}
-              />
-            </Flex>
+                    <Input
+                      type="file"
+                      hidden
+                      ref={imageRef}
+                      onChange={handleImageChange}
+                    />
+                    <Box
+                      display={"flex"}
+                      alignItems={"center"}
+                      flexDirection={"row-reverse"}
+                      justifyContent={"space-between"}
+                    >
+                      <BsFillImageFill
+                        style={{ marginLeft: "5px", cursor: "pointer" }}
+                        size={16}
+                        onClick={() => imageRef.current.click()}
+                      />
+                    </Box>
+                    {imgUrl && (
+                      <Flex mt={5} w={"full"} position={"relative"}>
+                        <Image src={imgUrl} alt="Selected img" />
+                        <CloseButton
+                          onClick={() => {
+                            setImgUrl("");
+                          }}
+                          bg={"gray.800"}
+                          position={"absolute"}
+                          top={2}
+                          right={2}
+                        />
+                      </Flex>
+                    )}
+                    <Button
+                      colorScheme="blue"
+                      mr={3}
+                      onClick={handleCreatePost}
+                      isLoading={loading}
+                    >
+                      Post
+                    </Button>
+                    <Divider p={2} />
+                    <SuggestedUsers />
+                  </Box>
+                  {posts.map((post) => (
+                    <Post key={post._id} post={post} postedBy={post.postedBy} />
+                  ))}
+                </>
+              )}
+            </>
           )}
-          <Button
-            colorScheme="blue"
-            mr={3}
-            onClick={handleCreatePost}
-            isLoading={loading}
-          >
-            Post
-          </Button>
         </Box>
-        <SuggestedUsers />
+      )}
 
-        {posts.map((post) => (
-          <Post key={post._id} post={post} postedBy={post.postedBy} />
-        ))}
-      </Box>
-      <Box
-        flex={30}
-        display={{
-          base: "none",
-          md: "block",
-        }}
-      >
-        <SuggestedUsers />
-      </Box>
+      {activeSection === "following" && (
+        <Box flex={70}>
+          {!user ? (
+            <>
+              <Text mb={4} fontWeight={"bold"}>
+                Log in to see who you follow
+              </Text>
+              <SuggestedUsers />
+            </>
+          ) : (
+            <>
+              {loading ? (
+                <Flex justify="center">
+                  <Spinner size="xl" />
+                </Flex>
+              ) : (
+                <>
+                  <Text mb={4} fontWeight={"bold"}>
+                    Following
+                  </Text>
+                  {posts.map((post) => (
+                    <Post key={post._id} post={post} postedBy={post.postedBy} />
+                  ))}
+                </>
+              )}
+            </>
+          )}
+        </Box>
+      )}
     </Flex>
   );
 };

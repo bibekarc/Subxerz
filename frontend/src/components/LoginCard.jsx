@@ -31,7 +31,6 @@ export default function LoginCard() {
     password: "",
   });
   const showToast = useShowToast();
-  
   const handleLogin = async () => {
     setLoading(true);
     try {
