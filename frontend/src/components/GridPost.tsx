@@ -1,5 +1,5 @@
 import { Avatar } from "@chakra-ui/avatar";
-import { LazyLoadImage } from 'react-lazy-load-image-component';
+import { Image } from "@chakra-ui/image";
 import { Box, Flex, Text } from "@chakra-ui/layout";
 import { Link, useNavigate } from "react-router-dom";
 import Actions from "./Actions";
@@ -73,12 +73,7 @@ const GridPost = ({ post, postedBy }) => {
         onClick={() => navigate(`/${user.username}/post/${post._id}`)}
       >
         {post.img && (
-          <LazyLoadImage
-            src={post.img}
-            alt="Post image"
-            effect="blur"
-            style={{ width: '100%', height: 'auto' }}
-          />
+          <Image src={post.img} alt="Post image" />
         )}
         {currentUser?._id === user._id && (
           <Box
