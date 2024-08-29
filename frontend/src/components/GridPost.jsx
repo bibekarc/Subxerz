@@ -1,4 +1,3 @@
-import React from 'react';
 import { Image } from "@chakra-ui/image";
 import { Box } from "@chakra-ui/layout";
 import { Link, useNavigate } from "react-router-dom";

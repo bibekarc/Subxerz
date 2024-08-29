@@ -4,7 +4,7 @@ import useShowToast from "../hooks/useShowToast";
 import { useRecoilState } from "recoil";
 import postsAtom from "../atoms/postsAtom";
 import Masonry from "react-masonry-css";
-import GridPost from "../components/Gridpost";
+import GridPost from "../components/GridPost";
 
 const ExplorePage = () => {
   const [posts, setPosts] = useRecoilState(postsAtom);
