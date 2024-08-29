@@ -1,8 +1,8 @@
 import cron from "cron";
 import https from "https";
 
-// const URL = "https://subxer.onrender.com";
-const URL = "http://localhost:3000";
+const URL = "https://subxer.onrender.com";
+// const URL = "http://localhost:3000";
 
 
 const job = new cron.CronJob("*/14 * * * *", function () {
