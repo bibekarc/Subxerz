@@ -33,11 +33,14 @@ const UserHeader = ({ user }) => {
     });
   };
 
+  const settingnav = () =>{
+    navigate("/settings");
+  }
+
   const handleMessage = () => {
     // Redirect to the chat page with the user
     navigate(`/chat`);
   };
-  
 
   return (
     <VStack gap={4} alignItems={"start"}>
@@ -100,10 +103,7 @@ const UserHeader = ({ user }) => {
             >
               {following ? "Unfollow" : "Follow"}
             </Button>
-            <Button
-              size={"sm"}
-              onClick={handleMessage}
-            >
+            <Button size={"sm"} onClick={handleMessage}>
               Message
             </Button>
           </>
@@ -130,6 +130,9 @@ const UserHeader = ({ user }) => {
                   <MenuItem bg={"gray.dark"} onClick={copyURL}>
                     Copy link
                   </MenuItem>
+                  <MenuItem bg={"gray.dark"} onClick={settingnav}>
+                    Setting
+                  </MenuItem>
                 </MenuList>
               </Portal>
             </Menu>
@@ -137,8 +140,7 @@ const UserHeader = ({ user }) => {
         </Flex>
       </Flex>
 
-      <Flex w={"full"}>
-      </Flex>
+      <Flex w={"full"}></Flex>
     </VStack>
   );
 };

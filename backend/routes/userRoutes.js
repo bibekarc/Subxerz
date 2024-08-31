@@ -6,6 +6,7 @@ import {
   getUserProfile,
   loginUser,
   logoutUser,
+  searchUsers,
   signupUser,
   updateUser,
 } from "../controllers/userController.js";
@@ -21,5 +22,7 @@ router.post("/logout", logoutUser);
 router.post("/follow/:id", protectRoute, followUnFollowUser); // Toggle state(follow/unfollow)
 router.put("/update/:id", protectRoute, updateUser);
 router.put("/freeze", protectRoute, freezeAccount);
+
+router.get("/search", searchUsers);
 
 export default router;

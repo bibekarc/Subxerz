@@ -17,6 +17,9 @@ const postSchema = mongoose.Schema(
 		video: {
 			type: String,
 		},
+		pdf: {
+			type: String, // URL or file path of the PDF
+		},
 		likes: {
 			// array of user ids
 			type: [mongoose.Schema.Types.ObjectId],

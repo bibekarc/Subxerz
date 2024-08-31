@@ -1,7 +1,8 @@
-import { Box, Flex, Image, Text, useColorMode } from "@chakra-ui/react";
+import { Box, Button, Flex, Image, Text, useColorMode } from "@chakra-ui/react";
 import useShowToast from "../hooks/useShowToast";
 import useLogout from "../hooks/useLogout";
 import CustomButton from "../components/CustomButton";
+import { FiLogOut } from "react-icons/fi";
 
 export const SettingsPage = () => {
   const { colorMode, toggleColorMode } = useColorMode();
@@ -52,10 +53,16 @@ export const SettingsPage = () => {
         ( You can unfreeze your account anytime by logging in. )
       </Text>
       <Box mt={8}>
-      <CustomButton
-        onClick={freezeAccount}
-        title="Freeze"
-      />
+        <CustomButton onClick={freezeAccount} title="Freeze" />
+        <Flex
+        mt={10}
+        gap={5}
+        >
+          <Text fontWeight={"bold"}>LogOut</Text>
+        <Button size={"xs"} onClick={logout}>
+          <FiLogOut size={20} />
+        </Button>
+        </Flex>
       </Box>
     </>
   );

@@ -239,6 +239,27 @@ const freezeAccount = async (req, res) => {
 	}
 };
 
+const searchUsers = async (req, res) => {
+	try {
+	  const query = req.query.query || "";
+	  
+	  // Basic validation
+	  if (!query.trim()) {
+		return res.status(400).json({ message: "Query cannot be empty" });
+	  }
+  
+	  // Search for users by username (case-insensitive)
+	  const users = await User.find({
+		username: { $regex: query, $options: "i" }
+	  }).select("-password"); // Exclude password from results
+  
+	  res.status(200).json(users);
+	} catch (error) {
+	  res.status(500).json({ message: "Error searching users", error });
+	}
+  };
+  
+
 export {
 	signupUser,
 	loginUser,
@@ -248,4 +269,5 @@ export {
 	getUserProfile,
 	getSuggestedUsers,
 	freezeAccount,
+	searchUsers,
 };

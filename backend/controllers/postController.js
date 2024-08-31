@@ -5,12 +5,12 @@ import { v2 as cloudinary } from "cloudinary";
 const createPost = async (req, res) => {
   try {
     const { postedBy, text } = req.body;
-    let { img, video } = req.body;
+    let { img, video, pdf } = req.body;
 
     if (!postedBy || !text) {
       return res
         .status(400)
-        .json({ error: "Postedby and text fields are required" });
+        .json({ error: "PostedBy and text fields are required" });
     }
 
     const user = await User.findById(postedBy);
@@ -45,8 +45,16 @@ const createPost = async (req, res) => {
       video = uploadedResponse.secure_url;
     }
 
-    // Create the post with img and/or video
-    const newPost = new Post({ postedBy, text, img, video });
+    // Upload PDF if provided
+    if (pdf) {
+      const uploadedResponse = await cloudinary.uploader.upload(pdf, {
+        resource_type: "raw", // Use "raw" for PDFs
+      });
+      pdf = uploadedResponse.secure_url;
+    }
+
+    // Create the post with img, video, and/or pdf
+    const newPost = new Post({ postedBy, text, img, video, pdf });
     await newPost.save();
 
     res.status(201).json(newPost);
@@ -86,6 +94,16 @@ const deletePost = async (req, res) => {
       await cloudinary.uploader.destroy(imgId);
     }
 
+    if (post.video) {
+      const videoId = post.video.split("/").pop().split(".")[0];
+      await cloudinary.uploader.destroy(videoId, { resource_type: "video" });
+    }
+
+    if (post.pdf) {
+      const pdfId = post.pdf.split("/").pop().split(".")[0];
+      await cloudinary.uploader.destroy(pdfId, { resource_type: "raw" });
+    }
+
     await Post.findByIdAndDelete(req.params.id);
 
     res.status(200).json({ message: "Post deleted successfully" });
@@ -93,6 +111,7 @@ const deletePost = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 
 const likeUnlikePost = async (req, res) => {
   try {
@@ -204,6 +223,27 @@ const getUserPosts = async (req, res) => {
   }
 };
 
+// Controller function to search posts
+  const searchPosts = async (req, res) => {
+  const { query } = req.query; // Retrieve the search query from the request
+  
+  if (!query) {
+    return res.status(400).json({ error: "Query parameter is required" });
+  }
+
+  try {
+    // Perform a case-insensitive search for posts where the text field contains the query
+    const posts = await Post.find({
+      text: { $regex: query, $options: "i" } // $options: "i" makes the search case-insensitive
+    });
+
+    res.json(posts);
+  } catch (error) {
+    console.error("Error searching posts:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 export {
   createPost,
   getPost,
@@ -213,4 +253,5 @@ export {
   getFeedPosts,
   getUserPosts,
   getFollowingPosts,
+  searchPosts,
 };

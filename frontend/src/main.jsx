@@ -1,6 +1,6 @@
 import React from "react";
+import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
-import ReactDom from "react-dom/client";
 import "./index.css";
 import { ChakraProvider, ColorModeScript, extendTheme } from "@chakra-ui/react";
 import { mode } from "@chakra-ui/theme-tools";
@@ -31,7 +31,7 @@ const colors = {
 
 const theme = extendTheme({ config, styles, colors });
 
-ReactDom.createRoot(document.getElementById("root")).render(
+ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <RecoilRoot>
       <BrowserRouter>
