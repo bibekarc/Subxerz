@@ -5,7 +5,7 @@ import { v2 as cloudinary } from "cloudinary";
 const createPost = async (req, res) => {
   try {
     const { postedBy, text } = req.body;
-    let { img } = req.body;
+    let { img, video } = req.body;
 
     if (!postedBy || !text) {
       return res
@@ -29,12 +29,24 @@ const createPost = async (req, res) => {
         .json({ error: `Text must be less than ${maxLength} characters` });
     }
 
+    // Upload image if provided
     if (img) {
-      const uploadedResponse = await cloudinary.uploader.upload(img);
+      const uploadedResponse = await cloudinary.uploader.upload(img, {
+        resource_type: "image",
+      });
       img = uploadedResponse.secure_url;
     }
 
-    const newPost = new Post({ postedBy, text, img });
+    // Upload video if provided
+    if (video) {
+      const uploadedResponse = await cloudinary.uploader.upload(video, {
+        resource_type: "video",
+      });
+      video = uploadedResponse.secure_url;
+    }
+
+    // Create the post with img and/or video
+    const newPost = new Post({ postedBy, text, img, video });
     await newPost.save();
 
     res.status(201).json(newPost);

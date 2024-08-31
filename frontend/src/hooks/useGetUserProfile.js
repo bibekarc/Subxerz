@@ -24,15 +24,16 @@ const useGetUserProfile = () => {
         const data = await res.json();
         if (data.error) {
           showToast("Error", data.error, "error");
-          return;
-        }
-        if (data.isFrozen) {
+          setUser(null); // Ensure user state is reset
+        } else if (data.isFrozen) {
+          showToast("Warning", "User is frozen", "warning"); // Optional: Inform user about being frozen
           setUser(null);
-          return;
+        } else {
+          setUser(data);
         }
-        setUser(data);
       } catch (error) {
         showToast("Error", error.message, "error");
+        console.error("Error fetching user profile:", error); // Add detailed error logging
       } finally {
         setLoading(false);
       }

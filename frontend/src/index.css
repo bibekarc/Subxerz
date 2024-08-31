@@ -33,7 +33,7 @@
   }
   
   .my-masonry-grid_column {
-	padding-left: 10px; /* Adjust based on the gap between columns */
+	padding-left: 6px; /* Adjust based on the gap between columns */
 	background-clip: padding-box;
   }
   

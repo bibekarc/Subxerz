@@ -32,11 +32,11 @@ const ExplorePage = () => {
     getFeedPosts();
   }, [showToast, setPosts]);
 
-  // Filter posts to only include those with images
-  const postsWithImages = posts.filter(post => post.img);
+  // Filter posts to only include those with images or videos
+  const postsWithMedia = posts.filter(post => post.img || post.videoUrl);
 
   return (
-    <Flex direction="column" gap={10} alignItems="flex-start" p={5}>
+    <Flex direction="column" gap={1} alignItems="flex-start" p={1}>
       <Text fontSize="3xl" fontWeight="bold" mb={5}>
         Explore
       </Text>
@@ -47,18 +47,18 @@ const ExplorePage = () => {
           </Flex>
         ) : (
           <>
-            {postsWithImages.length === 0 ? (
+            {postsWithMedia.length === 0 ? (
               <Text fontSize="xl" textAlign="center">
                 No results found...
               </Text>
             ) : (
               <Masonry
-                breakpointCols={3}  // Adjust the number of columns based on the screen size
+                breakpointCols={3}
                 className="my-masonry-grid"
                 columnClassName="my-masonry-grid_column"
               >
-                {postsWithImages.map((post) => (
-                  <Box key={post._id} borderRadius="md" overflow="hidden" mb={4}>
+                {postsWithMedia.map((post) => (
+                  <Box key={post._id} borderRadius="md" overflow="hidden" mb={1}>
                     <GridPost post={post} postedBy={post.postedBy} />
                   </Box>
                 ))}

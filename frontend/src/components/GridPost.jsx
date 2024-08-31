@@ -1,4 +1,4 @@
-import { Image } from "@chakra-ui/image";
+import { Image } from "@chakra-ui/react";
 import { Box } from "@chakra-ui/layout";
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -65,12 +65,28 @@ const GridPost = ({ post, postedBy }) => {
         borderColor="gray.light"
         position="relative"
         cursor="pointer"
-        mb={4}
+        mb={1}
         py={5}
         onClick={() => navigate(`/${user.username}/post/${post._id}`)}
       >
         {post.img && (
-          <Image src={post.img} alt="Post image" />
+          <Image src={post.img} alt="Post image" width="100%" height="auto" />
+        )}
+        {post.videoUrl && (
+          <video
+            src={post.videoUrl}
+            autoPlay
+            muted
+            loop
+            playsInline
+            style={{ width: "100%", height: "auto" }}
+            onError={(e) => {
+              console.error('Error loading video:', e);
+              showToast("Error", "Failed to load video", "error");
+            }}
+          >
+            Your browser does not support the video tag.
+          </video>
         )}
         {currentUser?._id === user._id && (
           <Box

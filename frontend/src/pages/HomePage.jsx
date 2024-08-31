@@ -88,25 +88,30 @@ const HomePage = () => {
           img: imgUrl,
         }),
       });
-
+  
       const data = await res.json();
-      if (data.error) {
-        showToast("Error", data.error, "error");
-        return;
+      console.log("Server Response:", data); // Log server response for debugging
+  
+      if (res.ok) {
+        showToast("Success", "Post created successfully", "success");
+        if (username === user.username) {
+          setPosts([data, ...posts]);
+        }
+        onClose();
+        setPostText("");
+        setImgUrl("");
+      } else {
+        showToast("Error", data.error || "An error occurred", "error");
       }
-      showToast("Success", "Post created successfully", "success");
-      if (username === user.username) {
-        setPosts([data, ...posts]);
-      }
-      onClose();
-      setPostText("");
-      setImgUrl("");
     } catch (error) {
       showToast("Error", error.message, "error");
     } finally {
       setLoading(false);
     }
   };
+  
+  
+  
 
   return (
     <Flex direction="column" gap="10" alignItems={"flex-start"}>

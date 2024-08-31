@@ -12,7 +12,7 @@ import { useEffect, useState } from "react";
 import Comment from "../components/Comment";
 import useGetUserProfile from "../hooks/useGetUserProfile";
 import useShowToast from "../hooks/useShowToast";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { useRecoilState, useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
@@ -30,12 +30,9 @@ const PostPage = () => {
 
   useEffect(() => {
     const getPost = async () => {
-      setPosts([]); // Clear previous posts
       try {
         const res = await fetch(`/api/posts/${pid}`);
         const data = await res.json();
-        console.log("Fetched post data:", data);
-
         if (data.error) {
           showToast("Error", data.error, "error");
           return;
@@ -79,7 +76,7 @@ const PostPage = () => {
 
   if (loading) {
     return (
-      <Flex justifyContent={"center"}>
+      <Flex justifyContent={"center"} p={4}>
         <Spinner size={"xl"} />
       </Flex>
     );
@@ -93,8 +90,8 @@ const PostPage = () => {
     );
 
   return (
-    <>
-      <Flex mb={4} p={4} borderBottom={"1px solid"} borderColor={"gray.light"}>
+    <Flex direction="column" p={4} maxW="800px" mx="auto">
+      <Flex mb={4} p={4} borderBottom={"1px solid"} borderColor={"gray.200"}>
         <Flex w={"full"} alignItems={"center"} gap={3}>
           <Avatar
             src={user.profilePic}
@@ -105,7 +102,6 @@ const PostPage = () => {
               navigate(`/${user.username}`);
             }}
           />
-
           <Flex alignItems={"center"}>
             <Text
               fontSize={"sm"}
@@ -125,7 +121,7 @@ const PostPage = () => {
             fontSize={"xs"}
             width={36}
             textAlign={"right"}
-            color={"gray.light"}
+            color={"gray.500"}
           >
             {currentPost.createdAt
               ? formatDistanceToNow(new Date(currentPost.createdAt))
@@ -150,9 +146,20 @@ const PostPage = () => {
           borderRadius={6}
           overflow={"hidden"}
           border={"1px solid"}
-          borderColor={"gray.light"}
+          borderColor={"gray.200"}
         >
           <Image src={currentPost.img} w={"full"} />
+        </Box>
+      )}
+
+      {currentPost.video && (
+        <Box
+          borderRadius={6}
+          overflow={"hidden"}
+          border={"1px solid"}
+          borderColor={"gray.200"}
+        >
+          <video src={currentPost.video} controls width="100%" />
         </Box>
       )}
 
@@ -161,7 +168,7 @@ const PostPage = () => {
       </Flex>
 
       <Divider my={4} />
-      <Text>Comments</Text>
+      <Text fontSize={"lg"} fontWeight={"bold"}>Comments</Text>
       {currentPost.replies && currentPost.replies.length > 0 ? (
         currentPost.replies.map((reply) => (
           <Comment
@@ -178,7 +185,7 @@ const PostPage = () => {
           <Text>No comments yet.</Text>
         </Flex>
       )}
-    </>
+    </Flex>
   );
 };
 

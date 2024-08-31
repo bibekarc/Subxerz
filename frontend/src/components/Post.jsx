@@ -21,7 +21,10 @@ const Post = ({ post, postedBy }) => {
   useEffect(() => {
     const getUser = async () => {
       try {
-        const res = await fetch("/api/users/profile/" + postedBy);
+        const res = await fetch(`/api/users/profile/${postedBy}`);
+        if (!res.ok) {
+          throw new Error("Failed to fetch user profile");
+        }
         const data = await res.json();
         if (data.error) {
           showToast("Error", data.error, "error");
@@ -38,13 +41,16 @@ const Post = ({ post, postedBy }) => {
   }, [postedBy, showToast]);
 
   const handleDeletePost = async (e) => {
-    try {
-      e.preventDefault();
-      if (!window.confirm("Are you sure you want to delete this post?")) return;
+    e.preventDefault();
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
 
+    try {
       const res = await fetch(`/api/posts/${post._id}`, {
         method: "DELETE",
       });
+      if (!res.ok) {
+        throw new Error("Failed to delete post");
+      }
       const data = await res.json();
       if (data.error) {
         showToast("Error", data.error, "error");
@@ -58,57 +64,37 @@ const Post = ({ post, postedBy }) => {
   };
 
   if (!user) return null;
+
   return (
     <Link to={`/${user.username}/post/${post._id}`}>
       <Flex gap={3} mb={4} py={5}>
         <Flex flexDirection={"column"} alignItems={"center"}>
           <Avatar
             size="md"
-            name={user.name}
-            src={user?.profilePic}
+            name={user.name || "User"}
+            src={user.profilePic || "/default-profile-pic.png"}
             onClick={(e) => {
               e.preventDefault();
               navigate(`/${user.username}`);
             }}
           />
-          <Box w="1px" h={"full"} bg="gray.light" my={2}></Box>
+          <Box w="1px" h={"full"} bg="gray.200" my={2}></Box>
           <Box position={"relative"} w={"full"}>
             {post.replies.length === 0 && <Text textAlign={"center"}>🥱</Text>}
-            {post.replies[0] && (
+            {post.replies.map((reply, index) => (
               <Avatar
+                key={index}
                 size="xs"
-                name="John doe"
-                src={post.replies[0].userProfilePic}
+                name={reply.username || "Reply User"}
+                src={reply.userProfilePic || "/default-profile-pic.png"}
                 position={"absolute"}
-                top={"0px"}
-                left="15px"
+                top={index === 0 ? "0px" : "auto"}
+                bottom={index === 1 ? "0px" : "auto"}
+                left={index === 2 ? "4px" : "auto"}
+                right={index === 1 ? "-5px" : "auto"}
                 padding={"2px"}
               />
-            )}
-
-            {post.replies[1] && (
-              <Avatar
-                size="xs"
-                name="John doe"
-                src={post.replies[1].userProfilePic}
-                position={"absolute"}
-                bottom={"0px"}
-                right="-5px"
-                padding={"2px"}
-              />
-            )}
-
-            {post.replies[2] && (
-              <Avatar
-                size="xs"
-                name="John doe"
-                src={post.replies[2].userProfilePic}
-                position={"absolute"}
-                bottom={"0px"}
-                left="4px"
-                padding={"2px"}
-              />
-            )}
+            ))}
           </Box>
         </Flex>
         <Flex flex={1} flexDirection={"column"} gap={2}>
@@ -122,38 +108,50 @@ const Post = ({ post, postedBy }) => {
                   navigate(`/${user.username}`);
                 }}
               >
-                {user?.username}
+                {user.username}
               </Text>
-              <Image src="/verified.png" w={4} h={4} ml={1} />
+              <Image src="/verified.png" w={4} h={4} ml={1} alt="Verified" />
             </Flex>
             <Flex gap={4} alignItems={"center"}>
               <Text
                 fontSize={"xs"}
                 width={36}
                 textAlign={"right"}
-                color={"gray.light"}
+                color={"gray.500"}
               >
                 {formatDistanceToNow(new Date(post.createdAt))} ago
               </Text>
 
               {currentUser?._id === user._id && (
-                <DeleteIcon size={20} onClick={handleDeletePost} />
+                <DeleteIcon size={20} onClick={handleDeletePost} cursor="pointer" />
               )}
             </Flex>
           </Flex>
 
           <Text fontSize={"sm"}>{post.text}</Text>
-          {post.img && (
+          {post.img && !post.video && (
             <Box
               borderRadius={6}
               overflow={"hidden"}
               border={"1px solid"}
-              borderColor={"gray.light"}
+              borderColor={"gray.200"}
             >
-              <Image src={post.img} w={"full"} />
+              <Image src={post.img} alt="Post image" w={"full"} />
             </Box>
           )}
-
+          {post.video && (
+            <Box
+              borderRadius={6}
+              overflow={"hidden"}
+              border={"1px solid"}
+              borderColor={"gray.200"}
+            >
+              <video width="100%" controls>
+                <source src={post.video} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            </Box>
+          )}
           <Flex gap={3} my={1}>
             <Actions post={post} />
           </Flex>

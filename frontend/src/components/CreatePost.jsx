@@ -21,7 +21,8 @@ import {
 } from "@chakra-ui/react";
 import { useRef, useState } from "react";
 import usePreviewImg from "../hooks/usePreviewImg";
-import { BsFillImageFill } from "react-icons/bs";
+import usePreviewVideo from "../hooks/usePreviewVideo";
+import { BsFillImageFill, BsFillCameraVideoFill } from "react-icons/bs";
 import { useRecoilState, useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 import useShowToast from "../hooks/useShowToast";
@@ -34,7 +35,9 @@ const CreatePost = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [postText, setPostText] = useState("");
   const { handleImageChange, imgUrl, setImgUrl } = usePreviewImg();
+  const { handleVideoChange, videoUrl, setVideoUrl } = usePreviewVideo();
   const imageRef = useRef(null);
+  const videoRef = useRef(null);
   const [remainingChar, setRemainingChar] = useState(MAX_CHAR);
   const user = useRecoilValue(userAtom);
   const showToast = useShowToast();
@@ -57,7 +60,10 @@ const CreatePost = () => {
 
   const handleCreatePost = async () => {
     setLoading(true);
+    showToast("Posting", "Your post is being uploaded...", "info");
+    
     try {
+      // Start background upload process
       const res = await fetch("/api/posts/create", {
         method: "POST",
         headers: {
@@ -67,6 +73,7 @@ const CreatePost = () => {
           postedBy: user._id,
           text: postText,
           img: imgUrl,
+          video: videoUrl,
         }),
       });
 
@@ -75,6 +82,8 @@ const CreatePost = () => {
         showToast("Error", data.error, "error");
         return;
       }
+
+      // Show success toast after the post is created
       showToast("Success", "Post created successfully", "success");
       if (username === user.username) {
         setPosts([data, ...posts]);
@@ -82,8 +91,9 @@ const CreatePost = () => {
       onClose();
       setPostText("");
       setImgUrl("");
+      setVideoUrl("");
     } catch (error) {
-      showToast("Error", error, "error");
+      showToast("Error", error.message, "error");
     } finally {
       setLoading(false);
     }
@@ -134,15 +144,30 @@ const CreatePost = () => {
                 type="file"
                 hidden
                 ref={imageRef}
+                accept="image/*"
                 onChange={handleImageChange}
+              />
+
+              <Input
+                type="file"
+                hidden
+                ref={videoRef}
+                accept="video/*"
+                onChange={handleVideoChange}
               />
 
               <Box
                 display={"flex"}
-                alignItems={"centre"}
+                alignItems={"center"}
                 flexDirection={"row-reverse"}
-                justifyContent={"space-between"}
+                mt={4}
+                gap={3}
               >
+                <BsFillCameraVideoFill
+                  style={{ marginLeft: "5px", cursor: "pointer" }}
+                  size={16}
+                  onClick={() => videoRef.current.click()}
+                />
                 <BsFillImageFill
                   style={{ marginLeft: "5px", cursor: "pointer" }}
                   size={16}
@@ -165,6 +190,24 @@ const CreatePost = () => {
                 />
               </Flex>
             )}
+
+            {videoUrl && (
+              <Flex mt={5} w={"full"} position={"relative"}>
+                <video width="100%" controls>
+                  <source src={videoUrl} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+                <CloseButton
+                  onClick={() => {
+                    setVideoUrl("");
+                  }}
+                  bg={"gray.800"}
+                  position={"absolute"}
+                  top={2}
+                  right={2}
+                />
+              </Flex>
+            )}
           </ModalBody>
 
           <ModalFooter>
@@ -172,6 +215,7 @@ const CreatePost = () => {
               colorScheme="blue"
               onClick={handleCreatePost}
               isLoading={loading}
+              disabled={!postText.trim() && !imgUrl && !videoUrl}
             >
               Post
             </Button>
