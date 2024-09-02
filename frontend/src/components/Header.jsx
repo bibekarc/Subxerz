@@ -3,23 +3,19 @@ import {
   Image,
   Link,
   useColorMode,
-  Input,
-  useBreakpointValue,
 } from "@chakra-ui/react";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import userAtom from "../atoms/userAtom";
 import authScreenAtom from "../atoms/authAtom";
 import { AiOutlineSearch } from "react-icons/ai";
 import { BsFillChatQuoteFill } from "react-icons/bs";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
 import { MdOutlineSettings } from "react-icons/md";
 
 const Header = () => {
   const { colorMode, toggleColorMode } = useColorMode();
   const user = useRecoilValue(userAtom);
   const setAuthScreen = useSetRecoilState(authScreenAtom);
-  const navigate = useNavigate();
-  const isDesktop = useBreakpointValue({ base: false, md: true });
 
   return (
     <Flex
@@ -39,26 +35,11 @@ const Header = () => {
         onClick={toggleColorMode}
       />
 
-      {isDesktop ? (
-        <Flex flex={1} align="center" justify="center">
-          <Input
-            placeholder="Search..."
-            variant="outline"
-            size="md"
-            width="100%"
-            maxWidth="300px"
-            onClick={() => navigate("/search")}
-            onFocus={() => navigate("/search")}
-            display={{ base: "none", md: "block" }}
-          />
-        </Flex>
-      ) : (
+      {user && (
         <Flex gap={4} align="center">
-          {user && (
-            <Link as={RouterLink} to="/search">
-              <AiOutlineSearch size={24} />
-            </Link>
-          )}
+          <Link as={RouterLink} to="/search">
+            <AiOutlineSearch size={24} />
+          </Link>
         </Flex>
       )}
 

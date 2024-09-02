@@ -18,7 +18,6 @@ import CreatePostForm from "./CreatePostForm";
 const BottomBar = () => {
   const navigate = useNavigate();
   const isMobile = useBreakpointValue({ base: true, md: false });
-  const containerMaxWidth = { base: "420px", md: "700px" };
   const user = useRecoilValue(userAtom);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -29,13 +28,10 @@ const BottomBar = () => {
       position="fixed"
       bottom={0}
       width="full"
-      maxWidth={containerMaxWidth}
       display="flex"
       justifyContent="space-around"
       alignItems="center"
       py={2}
-      left="50%" // Center align the BottomBar
-      transform="translateX(-50%)" // Center align the BottomBar
       zIndex={1}
     >
       <IconButton
@@ -53,22 +49,19 @@ const BottomBar = () => {
         icon={<RxPlusCircled size={24} />}
         onClick={onOpen}
       />
-        <Modal isOpen={isOpen} onClose={onClose}>
+      <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
           <CreatePostForm isOpen={isOpen} onClose={onClose} />
         </ModalContent>
       </Modal>
-      <IconButton
-        aria-label="Explore"
-        icon={<MdExplore size={24} />}
-        onClick={() => navigate("/explore")}
-      />
-      <IconButton
-        aria-label="Settings"
-        icon={<RxAvatar size={24} />}
-        onClick={() => navigate(`/${user.username}`)}
-      />
+      {user && (
+        <IconButton
+          aria-label="Profile"
+          icon={<RxAvatar size={24} />}
+          onClick={() => navigate(`/${user.username}`)}
+        />
+      )}
     </Box>
   );
 };

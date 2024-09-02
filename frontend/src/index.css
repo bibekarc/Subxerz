@@ -76,13 +76,3 @@
 	}
   }
   
-  /* Blinking Caret */
-  @keyframes blink-caret {
-	0% {
-	  border-right: 2px solid currentColor; /* Use current text color for caret */
-	}
-	100% {
-	  border-right: 2px solid transparent;
-	}
-  }
-  

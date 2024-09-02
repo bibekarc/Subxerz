@@ -1,7 +1,7 @@
 import Conversation from "../models/conversationModel.js";
 import Message from "../models/messageModel.js";
 import { v2 as cloudinary } from "cloudinary";
-import { getRecipientSocketId } from "../socket/socket.js";
+import { getRecipientSocketId, io } from "../socket/socket.js";
 
 async function sendMessage(req, res) {
   try {
@@ -100,5 +100,7 @@ async function getConversations(req, res) {
     res.status(500).json({ error: error.message });
   }
 }
+
+
 
 export { sendMessage, getMessages, getConversations };

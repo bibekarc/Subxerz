@@ -15,18 +15,32 @@ export const SocketContextProvider = ({ children }) => {
 	const user = useRecoilValue(userAtom);
 
 	useEffect(() => {
-		const socket = io("/", {
-			query: {
-				userId: user?._id,
-			},
-		});
+		if (user?._id) {
+			const socket = io("http://localhost:5000", { // Ensure correct URL and port
+				query: {
+					userId: user._id,
+				},
+			});
 
-		setSocket(socket);
+			setSocket(socket);
 
-		socket.on("getOnlineUsers", (users) => {
-			setOnlineUsers(users);
-		});
-		return () => socket && socket.close();
+			socket.on("connect", () => {
+				console.log("Socket connected:", socket.id);
+			});
+
+			socket.on("getOnlineUsers", (users) => {
+				setOnlineUsers(users);
+			});
+
+			socket.on("disconnect", () => {
+				console.log("Socket disconnected");
+			});
+
+			return () => {
+				socket.off("getOnlineUsers"); // Clean up specific event listeners
+				socket.close(); // Ensure the socket is closed
+			};
+		}
 	}, [user?._id]);
 
 	return <SocketContext.Provider value={{ socket, onlineUsers }}>{children}</SocketContext.Provider>;
