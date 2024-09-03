@@ -1,4 +1,4 @@
-import { SearchIcon } from "@chakra-ui/icons";
+import { ArrowBackIcon, SearchIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
@@ -8,9 +8,19 @@ import {
   SkeletonCircle,
   Text,
   useColorModeValue,
+  Drawer,
+  DrawerBody,
+  DrawerHeader,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerCloseButton,
+  useDisclosure,
+  IconButton,
+  useColorMode,
 } from "@chakra-ui/react";
 import Conversation from "../components/Conversation";
 import { GiConversation } from "react-icons/gi";
+import { HamburgerIcon } from "@chakra-ui/icons";
 import MessageContainer from "../components/MessageContainer";
 import { useEffect, useState } from "react";
 import useShowToast from "../hooks/useShowToast";
@@ -21,6 +31,7 @@ import {
 } from "../atoms/messagesAtom";
 import userAtom from "../atoms/userAtom";
 import { useSocket } from "../context/SocketContext";
+import { useNavigate } from "react-router-dom";
 
 const ChatPage = () => {
   const [searchingUser, setSearchingUser] = useState(false);
@@ -33,6 +44,9 @@ const ChatPage = () => {
   const currentUser = useRecoilValue(userAtom);
   const showToast = useShowToast();
   const { socket, onlineUsers } = useSocket();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { colorMode } = useColorMode(); // Get current color mode
+  const navigate = useNavigate(); // Initialize useNavigate
 
   useEffect(() => {
     socket?.on("messagesSeen", ({ conversationId }) => {
@@ -103,6 +117,7 @@ const ChatPage = () => {
           username: searchedUser.username,
           userProfilePic: searchedUser.profilePic,
         });
+        onClose(); // Close the drawer when a conversation is selected
         return;
       }
 
@@ -122,6 +137,7 @@ const ChatPage = () => {
         ],
       };
       setConversations((prevConvs) => [...prevConvs, mockConversation]);
+      onClose(); // Close the drawer when a conversation is selected
     } catch (error) {
       showToast("Error", error.message, "error");
     } finally {
@@ -137,6 +153,97 @@ const ChatPage = () => {
       p={4}
       transform={"translateX(-50%)"}
     >
+
+      {/* Back To Home Page */}
+      <IconButton
+        display={{ base: "block", md: "none" }}
+        icon={<ArrowBackIcon />}
+        onClick={() => navigate("/")}
+        aria-label="Open Conversations"
+        mb={4}
+      />
+
+      {/* Mobile Hamburger Icon for Opening Drawer */}
+      <IconButton
+        display={{ base: "block", md: "none" }}
+        icon={<HamburgerIcon />}
+        onClick={onOpen}
+        aria-label="Open Conversations"
+        mb={4}
+      />
+
+      {/* Drawer for Mobile View */}
+      <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
+        <DrawerOverlay />
+        <DrawerContent
+      bg={useColorModeValue("rgba(255, 255, 255, 0.15)", "rgba(0, 0, 0, 0.15)")} // Light: transparent white, Dark: transparent black
+      backdropFilter="blur(10px)" // Blur effect
+      border={`1px solid ${useColorModeValue("rgba(255, 255, 255, 0.3)", "rgba(0, 0, 0, 0.3)")}`} // Light: white border, Dark: black border
+      borderRadius="md"
+    >
+      <DrawerCloseButton />
+      <DrawerHeader
+        color={useColorModeValue("black", "white")} // Text color for visibility
+      >
+        Conversations
+      </DrawerHeader>
+      <DrawerBody>
+        <form onSubmit={handleConversationSearch}>
+          <Flex alignItems={"center"} gap={2} mb={4}>
+            <Input
+              placeholder="Search for a user"
+              onChange={(e) => setSearchText(e.target.value)}
+              bg={useColorModeValue("rgba(255, 255, 255, 0.7)", "rgba(0, 0, 0, 0.7)")} // Input background color
+              color={useColorModeValue("black", "white")} // Input text color
+            />
+            <Button
+              size={"sm"}
+              type="submit"
+              isLoading={searchingUser}
+              color={useColorModeValue("black", "white")} // Button text color
+            >
+              <SearchIcon />
+            </Button>
+          </Flex>
+
+          {loadingConversations &&
+            [0, 1, 2].map((_, i) => (
+              <Flex
+                key={i}
+                gap={4}
+                alignItems={"center"}
+                p={"5"}
+                borderRadius={"md"}
+                bg={useColorModeValue("rgba(255, 255, 255, 0.2)", "rgba(0, 0, 0, 0.2)")} // Loading item background
+              >
+                <Box>
+                  <SkeletonCircle size={"10"} />
+                </Box>
+                <Flex w={"full"} flexDirection={"column"} gap={3}>
+                  <Skeleton h={"10px"} w={"80px"} />
+                  <Skeleton h={"8px"} w={"90%"} />
+                </Flex>
+              </Flex>
+            ))}
+
+          {!loadingConversations &&
+            conversations.map((conversation) => (
+              <Conversation
+                key={conversation._id}
+                isOnline={onlineUsers.includes(
+                  conversation.participants[0]._id
+                )}
+                conversation={conversation}
+                onClick={onClose} // Close the drawer when a conversation is selected
+              />
+            ))}
+        </form> {/* Added closing tag */}
+      </DrawerBody>
+    </DrawerContent>
+      </Drawer>
+      {/* Removed stray </Flex> here */}
+
+      {/* Desktop Layout */}
       <Flex
         gap={4}
         flexDirection={{ base: "column", md: "row" }}
@@ -152,6 +259,7 @@ const ChatPage = () => {
           flexDirection={"column"}
           maxW={{ sm: "250px", md: "full" }}
           mx={"auto"}
+          display={{ base: "none", md: "flex" }} // Hide on mobile, show on desktop
         >
           <Text
             fontWeight={700}
@@ -167,7 +275,7 @@ const ChatPage = () => {
               />
               <Button
                 size={"sm"}
-                onClick={handleConversationSearch}
+                type="submit" 
                 isLoading={searchingUser}
               >
                 <SearchIcon />
@@ -176,7 +284,7 @@ const ChatPage = () => {
           </form>
 
           {loadingConversations &&
-            [0, 1, 2, ].map((_, i) => (
+            [0, 1, 2].map((_, i) => (
               <Flex
                 key={i}
                 gap={4}
@@ -205,6 +313,7 @@ const ChatPage = () => {
               />
             ))}
         </Flex>
+
         {!selectedConversation._id && (
           <Flex
             flex={70}
@@ -213,14 +322,22 @@ const ChatPage = () => {
             flexDir={"column"}
             alignItems={"center"}
             justifyContent={"center"}
-            height={"400px"}
+            gap={2}
           >
-            <GiConversation size={100} />
-            <Text fontSize={20}>Select a conversation to start messaging</Text>
+            <GiConversation size={"6rem"} />
+            <Text
+              fontSize={"lg"}
+              fontWeight={700}
+              textAlign={"center"}
+              color={useColorModeValue("gray.600", "gray.400")}
+            >
+              Select a conversation to start chatting
+            </Text>
           </Flex>
         )}
-
-        {selectedConversation._id && <MessageContainer />}
+        {selectedConversation._id && (
+          <MessageContainer selectedConversation={selectedConversation} />
+        )}
       </Flex>
     </Box>
   );

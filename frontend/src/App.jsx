@@ -30,7 +30,7 @@ function App() {
             position="sticky"
             top={0}
             height="100vh"
-            width={{ base: "200px", lg: "250px", xl: "300px" }}
+            width={{ base: "200px", lg: "250px", xl: "0px" }}
             zIndex={1}
             display={{ base: "none", md: "block" }} // Hide LeftBar on small screens
           >
@@ -45,7 +45,7 @@ function App() {
           overflowX="hidden"
         >
           <Container
-            maxW="container.lg"
+            maxW={{ base: "container.sm", md: "container.md", lg: "container.sm", xl: "container.sm" }} // Make container width smaller for larger screens
             pt={{ base: "56px", md: "0" }}
             pl={{ base: "0", md: user ? "70px" : "0" }}
           >
@@ -68,7 +68,6 @@ function App() {
                   user ? (
                     <>
                       <UserPage />
-                      <CreatePost />
                     </>
                   ) : (
                     <UserPage />
@@ -90,11 +89,11 @@ function App() {
                 element={user ? <Explore /> : <Navigate to={"/auth"} />}
               />
             </Routes>
-            {user && <CreatePost />}
           </Container>
         </Box>
       </Flex>
-      {user && <BottomBar />} {/* Conditionally render BottomBar */}
+      {/* Conditionally render BottomBar based on the current path */}
+      {user && pathname !== "/chat" && <BottomBar />}
     </Box>
   );
 }

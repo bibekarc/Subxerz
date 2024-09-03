@@ -16,6 +16,13 @@ import {
   Stack,
   Divider,
   useBreakpointValue,
+  useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 
@@ -25,16 +32,16 @@ const SearchPage = () => {
   const [users, setUsers] = useState([]);
   const [posts, setPosts] = useState([]);
   const [combinedResults, setCombinedResults] = useState([]);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   // Define colors based on color mode
-  const backgroundColor = useColorModeValue("gray.100", "#010c0c");
-  const cardBackgroundColor = useColorModeValue("white", "#01000b");
-  const cardHoverBackgroundColor = useColorModeValue("gray.200", "#4A5568");
+  const backgroundColor = useColorModeValue("rgba(255, 255, 255, 0.1)", "rgba(0, 0, 0, 0.6)");
+  const cardBackgroundColor = useColorModeValue("rgba(255, 255, 255, 0.8)", "rgba(10, 10, 10, 0.8)");
+  const cardHoverBackgroundColor = useColorModeValue("rgba(255, 255, 255, 0.6)", "rgba(60, 60, 60, 0.8)");
   const textColor = useColorModeValue("gray.700", "gray.300");
-  const borderColor = useColorModeValue("gray.300", "#4A5568");
-  const maxWidth = useBreakpointValue({ base: "95%", md: "85%", lg: "80%" });
-  
-
+  const borderColor = useColorModeValue("gray.300", "gray.600");
+  const maxWidth = useBreakpointValue({ base: "95%", md: "90%", lg: "80%" });
   const navigate = useNavigate();
 
   const handleSearch = async () => {
@@ -71,8 +78,23 @@ const SearchPage = () => {
     navigate(`/${username}`);
   };
 
+  const handlePostClick = (post) => {
+    setSelectedItem(post);
+    onOpen();
+  };
+
   return (
-    <Box p={6} bg={backgroundColor} maxW={maxWidth} mx="auto" borderRadius="md" boxShadow="lg" >
+    <Box
+      p={6}
+      bg={backgroundColor}
+      maxW={maxWidth}
+      mx="auto"
+      borderRadius="md"
+      boxShadow="xl"
+      backdropFilter="blur(10px)"
+      border="1px"
+      borderColor={borderColor}
+    >
       <Flex direction="column" mb={6} align="center">
         <Input
           placeholder="Search for users and posts..."
@@ -145,7 +167,8 @@ const SearchPage = () => {
                     bg={cardBackgroundColor}
                     borderColor={borderColor}
                     shadow="md"
-                    _hover={{ bg: cardHoverBackgroundColor, cursor: "default" }} // Prevent click and change cursor style
+                    _hover={{ bg: cardHoverBackgroundColor, cursor: "pointer" }}
+                    onClick={() => handlePostClick(item)}
                   >
                     <Text fontWeight="bold" fontSize="lg">{item.title}</Text>
                     <Text color={textColor}>{item.text}</Text>
@@ -210,7 +233,8 @@ const SearchPage = () => {
                   bg={cardBackgroundColor}
                   borderColor={borderColor}
                   shadow="md"
-                  _hover={{ bg: cardHoverBackgroundColor, cursor: "default" }} // Prevent click and change cursor style
+                  _hover={{ bg: cardHoverBackgroundColor, cursor: "pointer" }}
+                  onClick={() => handlePostClick(post)}
                 >
                   <Text fontWeight="bold" fontSize="lg">{post.title}</Text>
                   <Text color={textColor}>{post.text}</Text>
@@ -223,6 +247,20 @@ const SearchPage = () => {
           </TabPanel>
         </TabPanels>
       </Tabs>
+
+      {/* Modal for Post Details */}
+      {selectedItem && (
+        <Modal isOpen={isOpen} onClose={onClose}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>{selectedItem.title}</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <Text>{selectedItem.text}</Text>
+            </ModalBody>
+          </ModalContent>
+        </Modal>
+      )}
     </Box>
   );
 };
