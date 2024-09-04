@@ -1,15 +1,17 @@
 import { Box, Flex, Spinner, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import useShowToast from "../hooks/useShowToast";
-import { useRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import postsAtom from "../atoms/postsAtom";
 import Masonry from "react-masonry-css";
 import GridPost from "../components/GridPost";
+import userAtom from "../atoms/userAtom";
 
 const ExplorePage = () => {
   const [posts, setPosts] = useRecoilState(postsAtom);
   const [loading, setLoading] = useState(true);
   const showToast = useShowToast();
+  const currentUser = useRecoilValue(userAtom); // Get the current user
 
   useEffect(() => {
     const getFeedPosts = async () => {
@@ -32,17 +34,24 @@ const ExplorePage = () => {
     getFeedPosts();
   }, [showToast, setPosts]);
 
-  // Filter posts to only include those with images or videos
-  const postsWithMedia = posts.filter(post => post.img || post.videoUrl);
+  // Filter posts to only include those with images or videos and not by the current user
+  const postsWithMedia = posts.filter(post =>
+    (post.img || post.videoUrl) && post.postedBy !== currentUser._id
+  );
 
   return (
-    <Flex direction="column" gap={1} alignItems="flex-start" p={1}>
-      <Text fontSize="3xl" fontWeight="bold" mb={5}>
+    <Flex direction="column" gap={4} alignItems="center" p={4}>
+      <Text fontSize="4xl" fontWeight="bold" mb={6}>
         Explore
       </Text>
-      <Flex flex={70} direction="column" gap={5}>
+      <Flex
+        direction="column"
+        width="100%"
+        maxW="1200px"
+        gap={5}
+      >
         {loading ? (
-          <Flex justify="center">
+          <Flex justify="center" align="center" height="100vh">
             <Spinner size="xl" />
           </Flex>
         ) : (
@@ -58,7 +67,14 @@ const ExplorePage = () => {
                 columnClassName="my-masonry-grid_column"
               >
                 {postsWithMedia.map((post) => (
-                  <Box key={post._id} borderRadius="md" overflow="hidden" mb={1}>
+                  <Box
+                    key={post._id}
+                    overflow="hidden"
+                    boxShadow="lg"
+                    mb={1}
+                    transition="transform 0.3s"
+                    _hover={{ transform: "scale(1.01)" }}
+                  >
                     <GridPost post={post} postedBy={post.postedBy} />
                   </Box>
                 ))}
@@ -67,14 +83,6 @@ const ExplorePage = () => {
           </>
         )}
       </Flex>
-      <Box
-        flex={30}
-        display={{
-          base: "none",
-          md: "block",
-        }}
-      >
-      </Box>
     </Flex>
   );
 };

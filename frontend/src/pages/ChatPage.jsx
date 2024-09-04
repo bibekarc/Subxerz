@@ -154,7 +154,7 @@ const ChatPage = () => {
       transform={"translateX(-50%)"}
     >
 
-      {/* Back To Home Page */}
+      {/* Back To Home */}
       <IconButton
         display={{ base: "block", md: "none" }}
         icon={<ArrowBackIcon />}

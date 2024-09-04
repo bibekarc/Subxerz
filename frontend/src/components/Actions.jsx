@@ -158,7 +158,13 @@ const Actions = ({ post }) => {
 
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
-        <ModalContent>
+        <ModalContent
+          bg="rgba(255, 255, 255, 0.1)" // Glassmorphism background
+          backdropFilter="blur(10px)" // Glassmorphism effect
+          borderRadius="md" // Rounded corners
+          border="1px solid rgba(255, 255, 255, 0.2)" // Light border
+          boxShadow="0 4px 6px rgba(0, 0, 0, 0.1)" // Soft shadow
+        >
           <ModalHeader>Reply</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>

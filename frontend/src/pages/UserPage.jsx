@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import UserHeader from "../components/UserHeader";
 import { useParams } from "react-router-dom";
 import useShowToast from "../hooks/useShowToast";
@@ -14,9 +14,10 @@ const UserPage = () => {
   const showToast = useShowToast();
   const [posts, setPosts] = useRecoilState(postsAtom);
   const [fetchingPosts, setFetchingPosts] = useState(true);
-  
-  // State to toggle between Posts and Videos
   const [activeSection, setActiveSection] = useState("posts");
+  const [autoplayPostId, setAutoplayPostId] = useState(null);
+
+  const postRefs = useRef([]);
 
   useEffect(() => {
     const getPosts = async () => {
@@ -25,7 +26,6 @@ const UserPage = () => {
       try {
         const res = await fetch(`/api/posts/user/${username}`);
         const data = await res.json();
-        console.log("Fetched posts data:", data);
         setPosts(data);
       } catch (error) {
         showToast("Error", error.message, "error");
@@ -38,6 +38,30 @@ const UserPage = () => {
     getPosts();
   }, [username, showToast, setPosts, user]);
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const postId = entry.target.dataset.postId;
+          if (entry.isIntersecting) {
+            setAutoplayPostId(postId);
+          }
+        });
+      },
+      { threshold: 0.5 } // Adjust the threshold as needed
+    );
+
+    postRefs.current.forEach((ref) => {
+      if (ref) observer.observe(ref);
+    });
+
+    return () => {
+      postRefs.current.forEach((ref) => {
+        if (ref) observer.unobserve(ref);
+      });
+    };
+  }, [posts]);
+
   if (!user && loading) {
     return (
       <Flex justifyContent={"center"}>
@@ -48,9 +72,8 @@ const UserPage = () => {
 
   if (!user && !loading) return <h1>User not found</h1>;
 
-  // Filter posts based on type
-  const imageTextPosts = posts.filter(post => post.img || post.text); // Posts with image or text
-  const videoPosts = posts.filter(post => post.video); // Posts with video
+  const imageTextPosts = posts.filter(post => post.img || post.text);
+  const videoPosts = posts.filter(post => post.video);
 
   return (
     <>
@@ -81,7 +104,7 @@ const UserPage = () => {
 
       {activeSection === "posts" && (
         <>
-          {!fetchingPosts && imageTextPosts.length === 0 && <h1>User has no image/text posts.</h1>}
+          {!fetchingPosts && imageTextPosts.length === 0 && <h1>No Posts</h1>}
           {fetchingPosts && (
             <Flex justifyContent={"center"} my={12}>
               <Spinner size={"xl"} />
@@ -95,14 +118,20 @@ const UserPage = () => {
 
       {activeSection === "videos" && (
         <>
-          {!fetchingPosts && videoPosts.length === 0 && <h1>User has no video posts.</h1>}
+          {!fetchingPosts && videoPosts.length === 0 && <h1>No Posts</h1>}
           {fetchingPosts && (
             <Flex justifyContent={"center"} my={12}>
               <Spinner size={"xl"} />
             </Flex>
           )}
           {videoPosts.map((post) => (
-            <Post key={post._id} post={post} postedBy={post.postedBy} />
+            <Post
+              key={post._id}
+              post={post}
+              postedBy={post.postedBy}
+              videoRef={(el) => (postRefs.current[post._id] = el)}
+              autoplay={post._id === autoplayPostId}
+            />
           ))}
         </>
       )}

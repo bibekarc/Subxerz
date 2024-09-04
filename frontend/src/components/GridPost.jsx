@@ -1,6 +1,5 @@
-import { Image } from "@chakra-ui/react";
-import { Box } from "@chakra-ui/layout";
-import { Link, useNavigate } from "react-router-dom";
+import { Image, Box } from "@chakra-ui/react";
+import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import useShowToast from "../hooks/useShowToast";
 import { DeleteIcon } from "@chakra-ui/icons";
@@ -13,7 +12,6 @@ const GridPost = ({ post, postedBy }) => {
   const showToast = useShowToast();
   const currentUser = useRecoilValue(userAtom);
   const [posts, setPosts] = useRecoilState(postsAtom);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const getUser = async () => {
@@ -59,18 +57,30 @@ const GridPost = ({ post, postedBy }) => {
   return (
     <Link to={`/${user.username}/post/${post._id}`}>
       <Box
-        borderRadius="md"
+        borderRadius="sm" // Reduced rounding for the container
         overflow="hidden"
-        border="1px solid"
-        borderColor="gray.light"
+        bg="rgba(255, 255, 255, 0.1)" // Glass effect background
+        backdropFilter="blur(10px)" // Glassmorphism effect
+        boxShadow="0 4px 6px rgba(0, 0, 0, 0.1)"
         position="relative"
         cursor="pointer"
-        mb={1}
-        py={5}
-        onClick={() => navigate(`/${user.username}/post/${post._id}`)}
+        mb={0} // Remove bottom margin
+        p={0} // Remove padding
+        transition="transform 0.3s, box-shadow 0.3s"
+        _hover={{
+          transform: "scale(1.02)",
+          boxShadow: "0 8px 12px rgba(0, 0, 0, 0.2)",
+        }}
       >
         {post.img && (
-          <Image src={post.img} alt="Post image" width="100%" height="auto" />
+          <Image
+            src={post.img}
+            alt="Post image"
+            width="100%"
+            height="auto"
+            objectFit="cover"
+            borderRadius="0" // Ensure no rounding on image
+          />
         )}
         {post.videoUrl && (
           <video
@@ -79,7 +89,8 @@ const GridPost = ({ post, postedBy }) => {
             muted
             loop
             playsInline
-            style={{ width: "100%", height: "auto" }}
+            controls // Add controls to debug
+            style={{ width: "100%", height: "auto", borderRadius: "0" }} // Ensure no rounding on video
             onError={(e) => {
               console.error('Error loading video:', e);
               showToast("Error", "Failed to load video", "error");
@@ -93,7 +104,7 @@ const GridPost = ({ post, postedBy }) => {
             position="absolute"
             top={2}
             right={2}
-            background="rgba(0, 0, 0, 0.5)"
+            background="rgba(0, 0, 0, 0.6)"
             borderRadius="full"
             p={1}
             cursor="pointer"

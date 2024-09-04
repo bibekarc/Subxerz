@@ -5,14 +5,17 @@ import { Portal } from "@chakra-ui/portal";
 import { Button, useToast } from "@chakra-ui/react";
 import { BsInstagram } from "react-icons/bs";
 import { CgMoreO } from "react-icons/cg";
-import { useRecoilValue } from "recoil";
+import { useRecoilValue, useRecoilState } from "recoil";
 import userAtom from "../atoms/userAtom";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import useFollowUnfollow from "../hooks/useFollowUnfollow";
+import { selectedConversationAtom, conversationsAtom } from "../atoms/messagesAtom"; // Import Recoil state
 
 const UserHeader = ({ user }) => {
   const toast = useToast();
-  const currentUser = useRecoilValue(userAtom); // logged in user
+  const currentUser = useRecoilValue(userAtom);
+  const [conversations, setConversations] = useRecoilState(conversationsAtom); // Manage conversations
+  const [selectedConversation, setSelectedConversation] = useRecoilState(selectedConversationAtom); // Manage selected conversation
   const { handleFollowUnfollow, following, updating } = useFollowUnfollow(user);
   const navigate = useNavigate();
 
@@ -33,13 +36,50 @@ const UserHeader = ({ user }) => {
     });
   };
 
-  const settingnav = () =>{
+  const settingnav = () => {
     navigate("/settings");
-  }
+  };
 
   const handleMessage = () => {
-    // Redirect to the chat page with the user
-    navigate(`/chat`);
+    // Check if a conversation with this user already exists
+    const existingConversation = conversations.find(
+      (conv) => conv.participants[0]._id === user._id
+    );
+
+    if (existingConversation) {
+      setSelectedConversation({
+        _id: existingConversation._id,
+        userId: user._id,
+        username: user.username,
+        userProfilePic: user.profilePic,
+      });
+    } else {
+      // Create a new mock conversation
+      const newConversation = {
+        mock: true,
+        lastMessage: {
+          text: "",
+          sender: "",
+        },
+        _id: Date.now(),
+        participants: [
+          {
+            _id: user._id,
+            username: user.username,
+            profilePic: user.profilePic,
+          },
+        ],
+      };
+      setConversations((prev) => [...prev, newConversation]);
+      setSelectedConversation({
+        _id: newConversation._id,
+        userId: user._id,
+        username: user.username,
+        userProfilePic: user.profilePic,
+      });
+    }
+    
+    navigate("/chat"); // Redirect to chat page
   };
 
   return (
