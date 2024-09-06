@@ -10,6 +10,7 @@ import { DeleteIcon } from "@chakra-ui/icons";
 import { useRecoilState, useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 import postsAtom from "../atoms/postsAtom";
+import SlideComponent from "./SlideComponent"; // Import the SlideComponent
 
 const Post = ({ post, postedBy }) => {
   const [user, setUser] = useState(null);
@@ -90,14 +91,21 @@ const Post = ({ post, postedBy }) => {
         return;
       }
       showToast("Success", "Post deleted", "success");
+
+      // Remove post from state
       setPosts(posts.filter((p) => p._id !== post._id));
     } catch (error) {
       showToast("Error", error.message, "error");
     }
   };
 
+  const handleVideoClick = (e) => {
+    e.stopPropagation(); // Prevent navigation on video click
+    navigate(`/${user?.username}`);
+  };
+
   return (
-    <Link to={`/${user?.username}/post/${post._id}`}>
+    <Link to={`/${user?.username}/post/${post._id}`} onClick={(e) => e.preventDefault()}>
       <Flex gap={3} mb={4} py={5}>
         <Flex flexDirection="column" alignItems="center">
           <Avatar
@@ -112,7 +120,7 @@ const Post = ({ post, postedBy }) => {
           <Box w="1px" h="full" bg="gray.200" my={2} />
           <Box position="relative" w="full">
             {post.replies.length === 0 && <Text textAlign="center">🥱</Text>}
-            {post.replies.map((reply, index) => (
+            {post.replies.map(( reply, index) => (
               <Avatar
                 key={index}
                 size="xs"
@@ -157,24 +165,26 @@ const Post = ({ post, postedBy }) => {
             </Flex>
           </Flex>
           <Text fontSize="sm">{post.text}</Text>
-          {post.img && !post.video && (
-            <Box
-              borderRadius={6}
-              overflow="hidden"
-              border="1px solid"
-              borderColor="gray.200"
-            >
-              <Image src={post.img} alt="Post image" w="full" />
+          {post.img && (
+            <Box overflow="hidden" >
+              { Array.isArray(post.img) && post.img.length > 1 ? (
+                <SlideComponent imgUrls={post.img} showCloseButton={false} />
+              ) : (
+                <Box>
+                  <Image src={post.img[0]} alt="Post image" w="full" />
+                  </Box>
+              )}
             </Box>
           )}
           {post.video && (
-            <Box
-              borderRadius={6}
-              overflow="hidden"
-              border="1px solid"
-              borderColor="gray.200"
-            >
-              <video ref={videoRef} width="100%" autoPlay={isAutoplay} loop>
+            <Box borderRadius={1} overflow="hidden" >
+              <video
+                ref={videoRef}
+                width="100%"
+                autoPlay={isAutoplay}
+                loop
+                onClick={handleVideoClick}
+              >
                 <source src={post.video} type="video/mp4" />
                 Your browser does not support the video tag.
               </video>

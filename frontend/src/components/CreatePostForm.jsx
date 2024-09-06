@@ -1,10 +1,8 @@
+// CreatePostForm.jsx
 import {
   Box,
   Button,
-  CloseButton,
-  Flex,
   FormControl,
-  Image,
   Input,
   Modal,
   ModalBody,
@@ -26,12 +24,13 @@ import userAtom from "../atoms/userAtom";
 import useShowToast from "../hooks/useShowToast";
 import postsAtom from "../atoms/postsAtom";
 import { useParams } from "react-router-dom";
+import SlideComponent from "./SlideComponent";
 
 const MAX_CHAR = 2200;
 
 const CreatePostForm = ({ isOpen, onClose }) => {
   const [postText, setPostText] = useState("");
-  const { handleImageChange, imgUrl, setImgUrl } = usePreviewImg();
+  const { handleImageChange, imgUrls, setImgUrls } = usePreviewImg();
   const { handleVideoChange, videoUrl, setVideoUrl } = usePreviewVideo();
   const imageRef = useRef(null);
   const videoRef = useRef(null);
@@ -42,11 +41,15 @@ const CreatePostForm = ({ isOpen, onClose }) => {
   const [posts, setPosts] = useRecoilState(postsAtom);
   const { username } = useParams();
 
-  // Updated color values for glassmorphism effect with less opacity
-  const modalBgColor = useColorModeValue("rgba(255, 255, 255, 0.1)", "rgba(0, 0, 0, 0.1)"); // Less transparency for a stronger background
-  const borderColor = useColorModeValue("rgba(255, 255, 255, 0.8)", "rgba(255, 255, 255, 0.5 )"); // More visible border color
-  const textColor = useColorModeValue("gray.100", "whiteAlpha.900"); // Text color for contrast
-  const closeButtonBgColor = useColorModeValue("gray.200", "gray.200"); // Close button background color
+  const modalBgColor = useColorModeValue(
+    "rgba(255, 255, 255, 0.1)",
+    "rgba(0, 0, 0, 0.1)"
+  );
+  const borderColor = useColorModeValue(
+    "rgba(255, 255, 255, 0.8)",
+    "rgba(255, 255, 255, 0.5 )"
+  );
+  const textColor = useColorModeValue("gray.100", "whiteAlpha.900");
 
   const handleTextChange = (e) => {
     const inputText = e.target.value;
@@ -74,7 +77,7 @@ const CreatePostForm = ({ isOpen, onClose }) => {
         body: JSON.stringify({
           postedBy: user._id,
           text: postText,
-          img: imgUrl,
+          img: imgUrls,
           video: videoUrl,
         }),
       });
@@ -90,9 +93,9 @@ const CreatePostForm = ({ isOpen, onClose }) => {
         setPosts([data, ...posts]);
       }
       setPostText("");
-      setImgUrl("");
+      setImgUrls([]);
       setVideoUrl("");
-      onClose(); // Close the modal after posting
+      onClose();
     } catch (error) {
       showToast("Error", error.message, "error");
     } finally {
@@ -107,8 +110,8 @@ const CreatePostForm = ({ isOpen, onClose }) => {
         backgroundColor={modalBgColor}
         borderRadius="10px"
         p="4"
-        backdropFilter="blur(6px)" // Glassmorphism effect
-        boxShadow="0 4px 8px rgba(0, 0, 0, 0.2)" // Shadow for depth
+        backdropFilter="blur(6px)"
+        boxShadow="0 4px 8px rgba(0, 0, 0, 0.2)"
       >
         <ModalHeader color={textColor}>Create Post</ModalHeader>
         <ModalCloseButton />
@@ -121,7 +124,9 @@ const CreatePostForm = ({ isOpen, onClose }) => {
               color={textColor}
               borderColor={borderColor}
               backgroundColor={modalBgColor}
-              _placeholder={{ color: useColorModeValue("gray.100", "gray.300") }} // Placeholder color
+              _placeholder={{
+                color: useColorModeValue("gray.100", "gray.300"),
+              }}
             />
             <Text
               fontSize="xs"
@@ -138,6 +143,7 @@ const CreatePostForm = ({ isOpen, onClose }) => {
               hidden
               ref={imageRef}
               accept="image/*"
+              multiple
               onChange={handleImageChange}
             />
 
@@ -153,55 +159,24 @@ const CreatePostForm = ({ isOpen, onClose }) => {
               display={"flex"}
               alignItems={"center"}
               flexDirection={"row-reverse"}
-              mt={4}
+              my={4}
               gap={3}
             >
               <BsFillCameraVideoFill
-                style={{ marginLeft: "5px", cursor: "pointer", color: 'white' }} // Ensure icon is white
+                style={{ marginLeft: "5px", cursor: "pointer", color: "white" }}
                 size={16}
                 onClick={() => videoRef.current.click()}
               />
               <BsFillImageFill
-                style={{ marginLeft: "5px", cursor: "pointer", color: 'white' }} // Ensure icon is white
+                style={{ marginLeft: "5px", cursor: "pointer", color: "white" }}
                 size={16}
                 onClick={() => imageRef.current.click()}
               />
             </Box>
           </FormControl>
 
-          {imgUrl && (
-            <Flex mt={5} w={"full"} position={"relative"}>
-              <Image src={imgUrl} alt="Selected img" />
-              <CloseButton
-                onClick={() => {
-                  setImgUrl("");
-                }}
-                bg={closeButtonBgColor}
-                color={textColor}
-                position={"absolute"}
-                top={2}
-                right={2}
-              />
-            </Flex>
-          )}
-
-          {videoUrl && (
-            <Flex mt={5} w={"full"} position={"relative"}>
-              <video width="100%" controls>
-                <source src={videoUrl} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-              <CloseButton
-                onClick={() => {
-                  setVideoUrl("");
-                }}
-                bg={closeButtonBgColor}
-                color={textColor}
-                position={"absolute"}
-                top={2}
-                right={2}
-              />
-            </Flex>
+          {(imgUrls.length > 0 || videoUrl) && (
+            <SlideComponent imgUrls={imgUrls} videoUrl={videoUrl} setImgUrls={setImgUrls} setVideoUrl={setVideoUrl}   showCloseButton={true}/>
           )}
         </ModalBody>
 
@@ -210,7 +185,7 @@ const CreatePostForm = ({ isOpen, onClose }) => {
             colorScheme="blue"
             onClick={handleCreatePost}
             isLoading={loading}
-            disabled={!postText.trim() && !imgUrl && !videoUrl}
+            disabled={!postText.trim() && imgUrls.length === 0 && !videoUrl}
           >
             Post
           </Button>

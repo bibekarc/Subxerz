@@ -4,8 +4,7 @@ import { v2 as cloudinary } from "cloudinary";
 
 const createPost = async (req, res) => {
   try {
-    const { postedBy, text } = req.body;
-    let { img, video, pdf } = req.body;
+    const { postedBy, text, img, video, pdf } = req.body;
 
     if (!postedBy || !text) {
       return res
@@ -29,32 +28,49 @@ const createPost = async (req, res) => {
         .json({ error: `Text must be less than ${maxLength} characters` });
     }
 
-    // Upload image if provided
-    if (img) {
+    // Handle image uploads
+    let imgUrls = [];
+    if (img && Array.isArray(img)) {
+      for (let i = 0; i < img.length; i++) {
+        const uploadedResponse = await cloudinary.uploader.upload(img[i], {
+          resource_type: "image",
+        });
+        imgUrls.push(uploadedResponse.secure_url);
+      }
+    } else if (img) {
+      // Handle single image upload
       const uploadedResponse = await cloudinary.uploader.upload(img, {
         resource_type: "image",
       });
-      img = uploadedResponse.secure_url;
+      imgUrls.push(uploadedResponse.secure_url);
     }
 
-    // Upload video if provided
+    // Handle video upload (unchanged)
+    let videoUrl = video;
     if (video) {
       const uploadedResponse = await cloudinary.uploader.upload(video, {
         resource_type: "video",
       });
-      video = uploadedResponse.secure_url;
+      videoUrl = uploadedResponse.secure_url;
     }
 
-    // Upload PDF if provided
+    // Handle PDF upload (unchanged)
+    let pdfUrl = pdf;
     if (pdf) {
       const uploadedResponse = await cloudinary.uploader.upload(pdf, {
         resource_type: "raw", // Use "raw" for PDFs
       });
-      pdf = uploadedResponse.secure_url;
+      pdfUrl = uploadedResponse.secure_url;
     }
 
-    // Create the post with img, video, and/or pdf
-    const newPost = new Post({ postedBy, text, img, video, pdf });
+    // Create the post with img (array of image URLs), video, and/or pdf
+    const newPost = new Post({
+      postedBy,
+      text,
+      img: imgUrls, // Set img to the array of image URLs
+      video: videoUrl,
+      pdf: pdfUrl,
+    });
     await newPost.save();
 
     res.status(201).json(newPost);
@@ -63,6 +79,7 @@ const createPost = async (req, res) => {
     console.log(err);
   }
 };
+
 
 const getPost = async (req, res) => {
   try {
@@ -78,37 +95,60 @@ const getPost = async (req, res) => {
   }
 };
 
-const deletePost = async (req, res) => {
+ const deletePost = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
+
     if (!post) {
+      console.error("Post not found with ID:", req.params.id);
       return res.status(404).json({ error: "Post not found" });
     }
 
+    // Check if the user is authorized to delete the post
     if (post.postedBy.toString() !== req.user._id.toString()) {
+      console.error("Unauthorized: User is not the post owner");
       return res.status(401).json({ error: "Unauthorized to delete post" });
     }
 
-    if (post.img) {
+    // Delete associated media files (multiple images, video, pdf) if they exist
+
+    // If img is an array (multiple images)
+    if (Array.isArray(post.img)) {
+      console.log("Deleting multiple images");
+      for (const imgUrl of post.img) {
+        const imgId = imgUrl.split("/").pop().split(".")[0];
+        console.log("Deleting image with ID:", imgId);
+        await cloudinary.uploader.destroy(imgId);
+      }
+    } else if (post.img) {  // For single image (if still used)
       const imgId = post.img.split("/").pop().split(".")[0];
+      console.log("Deleting single image with ID:", imgId);
       await cloudinary.uploader.destroy(imgId);
     }
 
+    // Delete video if it exists
     if (post.video) {
       const videoId = post.video.split("/").pop().split(".")[0];
+      console.log("Deleting video with ID:", videoId);
       await cloudinary.uploader.destroy(videoId, { resource_type: "video" });
     }
 
+    // Delete PDF if it exists
     if (post.pdf) {
       const pdfId = post.pdf.split("/").pop().split(".")[0];
-      await cloudinary.uploader.destroy(pdfId, { resource_type: "raw" });
+      console.log("Deleting PDF with ID:", pdfId);
+      await cloudinary.uploader.destroy(pdfId);
     }
 
-    await Post.findByIdAndDelete(req.params.id);
+    // Delete the post itself
+    await post.deleteOne();
+    console.log("Post deleted successfully with ID:", req.params.id);
 
-    res.status(200).json({ message: "Post deleted successfully" });
+    return res.status(200).json({ message: "Post deleted successfully" });
+
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Error deleting post:", err.message);
+    return res.status(500).json({ error: "Server error while deleting post" });
   }
 };
 
