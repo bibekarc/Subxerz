@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
+  Avatar,
   Box,
   Button,
   Flex,
@@ -19,6 +20,9 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 import useShowToast from "../hooks/useShowToast";
 import postsAtom from "../atoms/postsAtom";
+import { useState } from "react";
+
+const MAX_TEXT_LENGTH = 100; // Maximum length of text before truncating
 
 const Actions = ({ post }) => {
   const user = useRecoilValue(userAtom);
@@ -29,13 +33,18 @@ const Actions = ({ post }) => {
   const [isLiking, setIsLiking] = useState(false);
   const [isReplying, setIsReplying] = useState(false);
   const [reply, setReply] = useState("");
+  const [isExpanded, setIsExpanded] = useState(false); // To control full-text toggle
 
   const showToast = useShowToast();
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen, onClose } = useDisclosure();
 
   const handleLikeAndUnlike = async () => {
     if (!user) {
-      return showToast("Error", "You must be logged in to like a post", "error");
+      return showToast(
+        "Error",
+        "You must be logged in to like a post",
+        "error"
+      );
     }
     if (isLiking) return;
     setIsLiking(true);
@@ -69,7 +78,11 @@ const Actions = ({ post }) => {
 
   const handleReply = async () => {
     if (!user) {
-      return showToast("Error", "You must be logged in to reply to a post", "error");
+      return showToast(
+        "Error",
+        "You must be logged in to reply to a post",
+        "error"
+      );
     }
     if (isReplying) return;
     setIsReplying(true);
@@ -101,8 +114,36 @@ const Actions = ({ post }) => {
     }
   };
 
+  const toggleTextExpand = () => {
+    setIsExpanded(!isExpanded);
+  };
+
+  const renderText = () => {
+    if (post.text.length <= MAX_TEXT_LENGTH) {
+      return <Text fontSize="sm">{post.text}</Text>;
+    }
+
+    return (
+      <Text fontSize="sm">
+        {isExpanded
+          ? post.text
+          : post.text.slice(0, MAX_TEXT_LENGTH) + "... "}
+        <Text
+          as="span"
+          color="blue.500"
+          cursor="pointer"
+          fontWeight="bold"
+          onClick={toggleTextExpand}
+        >
+          {isExpanded ? "Show less" : "See more"}
+        </Text>
+      </Text>
+    );
+  };
+
   return (
     <Flex flexDirection="column">
+      {renderText()}
       <Flex gap={3} my={2} onClick={(e) => e.preventDefault()}>
         <svg
           aria-label="Like"
@@ -125,25 +166,26 @@ const Actions = ({ post }) => {
           ></path>
         </svg>
 
-        <svg
-          aria-label="Comment"
-          color="currentColor"
-          fill="none"
-          height="20"
-          role="img"
-          viewBox="0 0 24 24"
-          width="20"
-          onClick={onOpen}
-        >
-          <title>Comment</title>
-          <path
-            d="M20.656 17.008a9.993 9.993 0 1 0-3.59 3.615L22 22Z"
+        <Link to={`/${user?.username}/post/${post._id}`}>
+          <svg
+            aria-label="Comment"
+            color="currentColor"
             fill="none"
-            stroke="currentColor"
-            strokeLinejoin="round"
-            strokeWidth="2"
-          ></path>
-        </svg>
+            height="20"
+            role="img"
+            viewBox="0 0 24 24"
+            width="20"
+          >
+            <title>Comment</title>
+            <path
+              d="M20.656 17.008a9.993 9.993 0 1 0-3.59 3.615L22 22Z"
+              fill="none"
+              stroke="currentColor"
+              strokeLinejoin="round"
+              strokeWidth="2"
+            ></path>
+          </svg>
+        </Link>
       </Flex>
 
       <Flex gap={2} alignItems={"center"}>
@@ -154,6 +196,15 @@ const Actions = ({ post }) => {
         <Text color={"gray.light"} fontSize="sm">
           {post.replies.length} replies
         </Text>
+        {post.replies.length === 0 && <Text textAlign="center">🥱</Text>}
+        {post.replies.map((reply, index) => (
+          <Avatar
+            key={index}
+            size="xs"
+            name={reply.username || "Reply User"}
+            src={reply.userProfilePic || "/default-profile-pic.png"}
+          />
+        ))}
       </Flex>
 
       <Modal isOpen={isOpen} onClose={onClose}>

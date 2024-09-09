@@ -11,7 +11,7 @@ const ExplorePage = () => {
   const [posts, setPosts] = useRecoilState(postsAtom);
   const [loading, setLoading] = useState(true);
   const showToast = useShowToast();
-  const currentUser = useRecoilValue(userAtom); // Get the current user
+  const currentUser = useRecoilValue(userAtom);
 
   useEffect(() => {
     const getFeedPosts = async () => {
@@ -36,7 +36,7 @@ const ExplorePage = () => {
 
   // Filter posts to only include those with images or videos and not by the current user
   const postsWithMedia = posts.filter(post =>
-    (post.img || post.videoUrl) && post.postedBy !== currentUser._id
+    (post.img || post.video) && post.postedBy !== currentUser._id
   );
 
   return (
@@ -44,12 +44,7 @@ const ExplorePage = () => {
       <Text fontSize="4xl" fontWeight="bold" mb={6}>
         Explore
       </Text>
-      <Flex
-        direction="column"
-        width="100%"
-        maxW="1200px"
-        gap={5}
-      >
+      <Flex direction="column" width="100%" maxW="1200px" gap={5}>
         {loading ? (
           <Flex justify="center" align="center" height="100vh">
             <Spinner size="xl" />
@@ -71,7 +66,7 @@ const ExplorePage = () => {
                     key={post._id}
                     overflow="hidden"
                     boxShadow="lg"
-                    mb={1}
+                    mb={0.5}
                     transition="transform 0.3s"
                     _hover={{ transform: "scale(1.01)" }}
                   >

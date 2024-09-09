@@ -1,4 +1,4 @@
-import { Image, Box } from "@chakra-ui/react";
+import { Box, Image } from "@chakra-ui/react";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import useShowToast from "../hooks/useShowToast";
@@ -72,38 +72,26 @@ const GridPost = ({ post, postedBy }) => {
           boxShadow: "0 8px 12px rgba(0, 0, 0, 0.2)",
         }}
       >
-        {post.img && (
-          <Image
-            src={post.img}
-            alt="Post image"
-            width="100%"
-            height="auto"
-            objectFit="cover"
-            borderRadius="0" // Ensure no rounding on image
-          />
-        )}
-        {post.videoUrl && (
-          <video
-            src={post.videoUrl}
-            autoPlay
-            muted
-            loop
-            playsInline
-            controls // Add controls to debug
-            style={{ width: "100%", height: "auto", borderRadius: "0" }} // Ensure no rounding on video
-            onError={(e) => {
-              console.error('Error loading video:', e);
-              showToast("Error", "Failed to load video", "error");
-            }}
-          >
-            Your browser does not support the video tag.
-          </video>
+        {post.img && post.img.length > 0 && (
+          <Box>
+            {post.img.map((imageUrl, index) => (
+              <Image
+                key={index}
+                src={imageUrl}
+                alt={`Post image ${index + 1}`}
+                width="100%"
+                height="auto"
+                objectFit="cover"
+                borderRadius="0" // Ensure no rounding on image
+                fallbackSrc="path/to/default/image" // Fallback image if loading fails
+                onError={() => showToast("Error", `Failed to load image ${index + 1}`, "error")}
+              />
+            ))}
+          </Box>
         )}
         {currentUser?._id === user._id && (
           <Box
             position="absolute"
-            top={2}
-            right={2}
             background="rgba(0, 0, 0, 0.6)"
             borderRadius="full"
             p={1}

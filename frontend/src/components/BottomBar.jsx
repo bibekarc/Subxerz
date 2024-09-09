@@ -1,11 +1,7 @@
 import {
   Box,
   IconButton,
-  Modal,
-  ModalContent,
-  ModalOverlay,
   useBreakpointValue,
-  useDisclosure,
   useColorModeValue,
 } from "@chakra-ui/react";
 import { AiFillHome } from "react-icons/ai";
@@ -14,14 +10,12 @@ import { RxAvatar, RxPlusCircled } from "react-icons/rx";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
-import CreatePostForm from "./CreatePostForm";
 
 const BottomBar = () => {
   const navigate = useNavigate();
-  const location = useLocation(); // Get current location
+  const location = useLocation();
   const isMobile = useBreakpointValue({ base: true, md: false });
   const user = useRecoilValue(userAtom);
-  const { isOpen, onOpen, onClose } = useDisclosure();
 
   if (!isMobile) return null; // Only render on mobile
 
@@ -39,7 +33,7 @@ const BottomBar = () => {
       py={2}
       zIndex={1}
       backdropFilter="blur(10px)"
-      bg={useColorModeValue("rgba(255, 255, 255, 0.1)", "rgba(0, 0, 0, 0.1)")} // Glassmorphism effect
+      bg={useColorModeValue("rgba(255, 255, 255, 0.1)", "rgba(0, 0, 0, 0.1)")}
       border={`1px solid ${useColorModeValue(
         "rgba(255, 255, 255, 0.3)",
         "rgba(0, 0, 0, 0.3)"
@@ -73,7 +67,7 @@ const BottomBar = () => {
           activeRoute === "/explore"
             ? useColorModeValue(
                 "rgba(255, 255, 255, 0.2)",
-                "rgba(0, 0        , 0, 0.2)"
+                "rgba(0, 0, 0, 0.2)"
               )
             : "transparent"
         }
@@ -87,8 +81,15 @@ const BottomBar = () => {
       <IconButton
         aria-label="Create Post"
         icon={<RxPlusCircled size={24} />}
-        onClick={onOpen}
-        bg="transparent" // No background
+        onClick={() => navigate("/create-post")}
+        bg={
+          activeRoute === "/create-post"
+            ? useColorModeValue(
+                "rgba(255, 255, 255, 0.2)",
+                "rgba(0, 0, 0, 0.2)"
+              )
+            : "transparent"
+        }
         _hover={{
           bg: useColorModeValue(
             "rgba(255, 255, 255, 0.3)",
@@ -96,12 +97,7 @@ const BottomBar = () => {
           ),
         }}
       />
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <CreatePostForm isOpen={isOpen} onClose={onClose} />
-        </ModalContent>
-      </Modal>
+
       {user && (
         <IconButton
           aria-label="Profile"

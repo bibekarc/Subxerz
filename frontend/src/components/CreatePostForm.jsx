@@ -113,6 +113,8 @@ const CreatePostForm = ({ isOpen, onClose }) => {
         backdropFilter="blur(6px)"
         boxShadow="0 4px 8px rgba(0, 0, 0, 0.2)"
       >
+        <Box>
+        <Box>
         <ModalHeader color={textColor}>Create Post</ModalHeader>
         <ModalCloseButton />
         <ModalBody pb={6}>
@@ -190,6 +192,8 @@ const CreatePostForm = ({ isOpen, onClose }) => {
             Post
           </Button>
         </ModalFooter>
+        </Box>
+        </Box>
       </ModalContent>
     </Modal>
   );

@@ -10,7 +10,7 @@ import { DeleteIcon } from "@chakra-ui/icons";
 import { useRecoilState, useRecoilValue } from "recoil";
 import userAtom from "../atoms/userAtom";
 import postsAtom from "../atoms/postsAtom";
-import SlideComponent from "./SlideComponent"; // Import the SlideComponent
+import SlideComponent from "./SlideComponent";
 
 const Post = ({ post, postedBy }) => {
   const [user, setUser] = useState(null);
@@ -21,8 +21,9 @@ const Post = ({ post, postedBy }) => {
   const navigate = useNavigate();
   const videoRef = useRef(null);
 
+  // Fetch user data based on postedBy
   useEffect(() => {
-    const getUser = async () => {
+    const fetchUser = async () => {
       try {
         const res = await fetch(`/api/users/profile/${postedBy}`);
         if (!res.ok) throw new Error("Failed to fetch user profile");
@@ -38,21 +39,18 @@ const Post = ({ post, postedBy }) => {
       }
     };
 
-    getUser();
+    fetchUser();
   }, [postedBy, showToast]);
 
+  // IntersectionObserver to handle video autoplay
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setIsAutoplay(true);
-          } else {
-            setIsAutoplay(false);
-          }
+          setIsAutoplay(entry.isIntersecting);
         });
       },
-      { threshold: 0.5 } // Adjust as needed for the center detection
+      { threshold: 0.5 }
     );
 
     if (videoRef.current) {
@@ -66,18 +64,16 @@ const Post = ({ post, postedBy }) => {
     };
   }, [videoRef]);
 
+  // Handle video autoplay
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.muted = false;
       videoRef.current.loop = true;
-      if (isAutoplay) {
-        videoRef.current.play();
-      } else {
-        videoRef.current.pause();
-      }
+      isAutoplay ? videoRef.current.play() : videoRef.current.pause();
     }
   }, [isAutoplay]);
 
+  // Handle post deletion
   const handleDeletePost = async (e) => {
     e.preventDefault();
     if (!window.confirm("Are you sure you want to delete this post?")) return;
@@ -91,23 +87,26 @@ const Post = ({ post, postedBy }) => {
         return;
       }
       showToast("Success", "Post deleted", "success");
-
-      // Remove post from state
       setPosts(posts.filter((p) => p._id !== post._id));
     } catch (error) {
       showToast("Error", error.message, "error");
     }
   };
 
+  // Handle video click
   const handleVideoClick = (e) => {
-    e.stopPropagation(); // Prevent navigation on video click
-    navigate(`/${user?.username}`);
+    e.stopPropagation();
+    navigate(`/${user?.username}/post/${post._id}`);
   };
 
+  // Check if there is a valid image to display
+  const hasValidImages = post.img && post.img.length > 0;
+
   return (
-    <Link to={`/${user?.username}/post/${post._id}`} onClick={(e) => e.preventDefault()}>
-      <Flex gap={3} mb={4} py={5}>
-        <Flex flexDirection="column" alignItems="center">
+    <Flex mb={4} py={5} flexDirection="column">
+      {/* Post header */}
+      <Flex flexDirection="column" w="full" alignItems="center" gap={5} mb={5}>
+        <Flex w="full" gap={5}>
           <Avatar
             size="md"
             name={user?.name || "User"}
@@ -117,26 +116,6 @@ const Post = ({ post, postedBy }) => {
               navigate(`/${user?.username}`);
             }}
           />
-          <Box w="1px" h="full" bg="gray.200" my={2} />
-          <Box position="relative" w="full">
-            {post.replies.length === 0 && <Text textAlign="center">🥱</Text>}
-            {post.replies.map(( reply, index) => (
-              <Avatar
-                key={index}
-                size="xs"
-                name={reply.username || "Reply User"}
-                src={reply.userProfilePic || "/default-profile-pic.png"}
-                position="absolute"
-                top={index === 0 ? "0px" : "auto"}
-                bottom={index === 1 ? "0px" : "auto"}
-                left={index === 2 ? "4px" : "auto"}
-                right={index === 1 ? "-5px" : "auto"}
-                padding="2px"
-              />
-            ))}
-          </Box>
-        </Flex>
-        <Flex flex={1} flexDirection="column" gap={2}>
           <Flex justifyContent="space-between" w="full">
             <Flex w="full" alignItems="center">
               <Text
@@ -164,23 +143,44 @@ const Post = ({ post, postedBy }) => {
               )}
             </Flex>
           </Flex>
-          <Text fontSize="sm">{post.text}</Text>
-          {post.img && (
-            <Box overflow="hidden" >
-              { Array.isArray(post.img) && post.img.length > 1 ? (
-                <SlideComponent imgUrls={post.img} showCloseButton={false} />
-              ) : (
-                <Box>
-                  <Image src={post.img[0]} alt="Post image" w="full" />
-                  </Box>
-              )}
-            </Box>
-          )}
-          {post.video && (
-            <Box borderRadius={1} overflow="hidden" >
+        </Flex>
+      </Flex>
+
+      {/* Post content */}
+      <Flex flexDirection="column" gap={2} w="full">
+        {/* Conditionally render images or gallery */}
+        {hasValidImages && (
+          <Box overflow="hidden" w="full" mb={3}>
+            {post.img.length > 1 ? (
+              <SlideComponent imgUrls={post.img} showCloseButton={false} />
+            ) : (
+              <Image src={post.img[0]} alt="Post image" w="full" />
+            )}
+          </Box>
+        )}
+
+        {/* Conditionally render video */}
+        {post.video && (
+          <Link to={`/${user?.username}/post/${post._id}`}>
+            <Box
+              borderRadius={1}
+              overflow="hidden"
+              w="full"
+              h="auto"
+              mb={3}
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              bg="black"
+            >
               <video
                 ref={videoRef}
-                width="100%"
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: "500px",
+                  objectFit: "contain",
+                  backgroundColor: "black",
+                }}
                 autoPlay={isAutoplay}
                 loop
                 onClick={handleVideoClick}
@@ -189,13 +189,15 @@ const Post = ({ post, postedBy }) => {
                 Your browser does not support the video tag.
               </video>
             </Box>
-          )}
-          <Flex gap={3} my={1}>
-            <Actions post={post} />
-          </Flex>
+          </Link>
+        )}
+
+        {/* Actions and other details */}
+        <Flex gap={3} my={1} w="full" justifyContent="flex-start">
+          <Actions post={post} />
         </Flex>
       </Flex>
-    </Link>
+    </Flex>
   );
 };
 

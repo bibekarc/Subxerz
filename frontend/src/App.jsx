@@ -8,7 +8,7 @@ import AuthPage from "./pages/AuthPage";
 import { useRecoilValue } from "recoil";
 import userAtom from "./atoms/userAtom";
 import UpdateProfilePage from "./pages/UpdateProfilePage";
-import CreatePost from "./components/CreatePost";
+import CreatePostPage from "./pages/CreatePostPage"; // Renamed for clarity
 import ChatPage from "./pages/ChatPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import Explore from "./pages/Explore";
@@ -19,6 +19,9 @@ import LeftBar from "./components/LeftBar";
 function App() {
   const user = useRecoilValue(userAtom);
   const { pathname } = useLocation();
+
+  // Hide BottomBar on the PostPage
+  const hideBottomBar = pathname.includes('/post');
 
   return (
     <Box position="relative" w="full" h="100vh" overflowX="hidden">
@@ -45,7 +48,12 @@ function App() {
           overflowX="hidden"
         >
           <Container
-            maxW={{ base: "container.sm", md: "container.md", lg: "container.sm", xl: "container.sm" }} // Make container width smaller for larger screens
+            maxW={{
+              base: "container.sm",
+              md: "container.md",
+              lg: "container.md",
+              xl: "container.md",
+            }} // Adjust container width
             pt={{ base: "56px", md: "0" }}
             pl={{ base: "0", md: user ? "70px" : "0" }}
           >
@@ -63,37 +71,32 @@ function App() {
                 element={user ? <UpdateProfilePage /> : <Navigate to="/auth" />}
               />
               <Route
+                path="/create-post"
+                element={user ? <CreatePostPage /> : <Navigate to="/auth" />}
+              />
+              <Route
                 path="/:username"
-                element={
-                  user ? (
-                    <>
-                      <UserPage />
-                    </>
-                  ) : (
-                    <UserPage />
-                  )
-                }
+                element={user ? <UserPage /> : <UserPage />}
               />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/:username/post/:pid" element={<PostPage />} />
               <Route
                 path="/chat"
-                element={user ? <ChatPage /> : <Navigate to={"/auth"} />}
+                element={user ? <ChatPage /> : <Navigate to="/auth" />}
               />
               <Route
                 path="/settings"
-                element={user ? <SettingsPage /> : <Navigate to={"/auth"} />}
+                element={user ? <SettingsPage /> : <Navigate to="/auth" />}
               />
               <Route
                 path="/explore"
-                element={user ? <Explore /> : <Navigate to={"/auth"} />}
+                element={user ? <Explore /> : <Navigate to="/auth" />}
               />
             </Routes>
           </Container>
         </Box>
       </Flex>
-      {/* Conditionally render BottomBar based on the current path */}
-      {user && pathname !== "/chat" && <BottomBar />}
+      {!hideBottomBar && user && pathname !== "/chat" && <BottomBar />}
     </Box>
   );
 }
