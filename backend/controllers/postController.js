@@ -210,40 +210,58 @@ const replyToPost = async (req, res) => {
 };
 
 const getFollowingPosts = async (req, res) => {
-	try {
-		const userId = req.user._id;
-		const user = await User.findById(userId);
-		if (!user) {
-			return res.status(404).json({ error: "User not found" });
-		}
-
-		const following = user.following;
-
-		const feedPosts = await Post.find({ postedBy: { $in: following } }).sort({ createdAt: -1 });
-
-		res.status(200).json(feedPosts);
-	} catch (err) {
-		res.status(500).json({ error: err.message });
-	}
-};
-
-const getFeedPosts = async (req, res) => {
   try {
-    // Assuming the user's ID is available in req.user.id from authentication middleware
     const userId = req.user._id;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
-    // Fetch all posts from the Post collection, excluding the current user's posts
-    const feedPosts = await Post.find({ createdBy: { $ne: userId } }).sort({
-      createdAt: -1,
+    const following = user.following;
+    const { page = 1, limit = 10 } = req.query;
+
+    const feedPosts = await Post.find({ postedBy: { $in: following } })
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+
+    const totalPosts = await Post.countDocuments({ postedBy: { $in: following } });
+
+    res.status(200).json({
+      posts: feedPosts,
+      currentPage: page,
+      totalPages: Math.ceil(totalPosts / limit),
     });
-
-    // Send the retrieved posts as a response
-    res.status(200).json(feedPosts);
   } catch (err) {
-    // Handle any errors that occur
     res.status(500).json({ error: err.message });
   }
 };
+
+
+const getFeedPosts = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { page = 1, limit = 10 } = req.query; // Default to page 1 and 10 posts per page
+
+    // Fetch posts excluding the current user's posts with pagination
+    const feedPosts = await Post.find({ createdBy: { $ne: userId } })
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+
+    // Get total number of posts (for pagination info)
+    const totalPosts = await Post.countDocuments({ createdBy: { $ne: userId } });
+
+    res.status(200).json({
+      posts: feedPosts,
+      currentPage: page,
+      totalPages: Math.ceil(totalPosts / limit),
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 
 const getUserPosts = async (req, res) => {
   const { username } = req.params;

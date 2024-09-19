@@ -23,7 +23,7 @@ import SlideComponent from "../components/SlideComponent";
 
 const MAX_CHAR = 2200;
 
-const CreatePostPage = ({ onClose }) => {
+const CreatePostPage = () => {
   const { colorMode } = useColorMode();
   const modalBgColor = useColorModeValue("rgba(255, 255, 255, 0.9)", "rgba(0, 0, 0, 0.9)");
   const borderColor = useColorModeValue("gray.300", "gray.600");
@@ -85,7 +85,6 @@ const CreatePostPage = ({ onClose }) => {
       setPostText("");
       setImgUrls([]);
       setVideoUrl("");
-      onClose();
       navigate("/"); // Navigate to the home page
     } catch (error) {
       showToast("Error", error.message, "error");
@@ -121,7 +120,7 @@ const CreatePostPage = ({ onClose }) => {
           position="absolute"
           top="10px"
           right="10px"
-          onClick={onClose}
+          onClick={() => navigate("/")} // Navigate to the home page
           variant="outline"
           colorScheme="blue"
           size="lg"

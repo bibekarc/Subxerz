@@ -16,21 +16,23 @@ const ExplorePage = () => {
   useEffect(() => {
     const getFeedPosts = async () => {
       setLoading(true);
-      setPosts([]);
       try {
         const res = await fetch("/api/posts/feed");
         const data = await res.json();
         if (data.error) {
           showToast("Error", data.error, "error");
+          setPosts([]);
           return;
         }
-        setPosts(data);
+        setPosts(Array.isArray(data) ? data : []); // Ensure posts is always an array
       } catch (error) {
         showToast("Error", error.message, "error");
+        setPosts([]);
       } finally {
         setLoading(false);
       }
     };
+
     getFeedPosts();
   }, [showToast, setPosts]);
 
@@ -57,11 +59,11 @@ const ExplorePage = () => {
               </Text>
             ) : (
               <Masonry
-                breakpointCols={3}
+                breakpointCols={{ default: 3, 1100: 2, 700: 1 }}
                 className="my-masonry-grid"
                 columnClassName="my-masonry-grid_column"
               >
-                {postsWithMedia.map((post) => (
+                {postsWithMedia.map(post => (
                   <Box
                     key={post._id}
                     overflow="hidden"
